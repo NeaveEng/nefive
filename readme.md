@@ -1,7 +1,7 @@
 NE Five
 ==
 
-NE Five is a mobile robitics platform heavily inspired by [Johnny Five](https://en.wikipedia.org/wiki/Short_Circuit_(1986_film)) and is an evolution of the "MacFeegle Prime" robot originally developed for [PiWars](www.piwars.org) by [Keegan Neave](wwww.twitter.com/neaveeng). Work has been kindly supported by my [Patrons](www.patreon.com/neaveeng)!
+NE Five is a mobile robotics platform heavily inspired by [Johnny Five](https://en.wikipedia.org/wiki/Short_Circuit_(1986_film)) and is an evolution of the "MacFeegle Prime" robot originally developed for [PiWars](www.piwars.org) by [Keegan Neave](wwww.twitter.com/neaveeng). Work has been kindly supported by my [Patrons](www.patreon.com/neaveeng)!
 
 A video of the current version of the robot can be found on my [YouTube channel](www.youtube.com/neaveeng), click the preview to play.  
 [![What Went Wrong At PiWars 2021?](https://img.youtube.com/vi/SolxEP_HlIM/0.jpg)](https://www.youtube.com/watch?v=SolxEP_HlIM "What Went Wrong At PiWars 2021? - click to play video!")
