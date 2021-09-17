@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <include file="$(find nefive_description)/launch/spawn_nefive_with_controllers.launch"/>
+    <include file="$(find nefive_description)/launch/nefive_control.launch"/>
+</launch>

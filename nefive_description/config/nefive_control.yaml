@@ -1,0 +1,128 @@
+nefive:
+    # Publish all joint states -----------------------------------
+    joint_state_controller:
+      type: joint_state_controller/JointStateController
+      publish_rate: 50
+
+    # Position Controllers ---------------------------------------
+    head_pan_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: chest_box_head_pan_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    head_tilt_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: head_pan_head_tilt_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+
+    right_arm_right_shoulder_tilt_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_arm_right_shoulder_tilt_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    right_shoulder_tilt_right_shoulder_pan_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_shoulder_tilt_right_shoulder_pan_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    right_shoulder_pan_right_shoulder_rotate_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_shoulder_pan_right_shoulder_rotate_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    right_shoulder_rotate_right_elbow_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_shoulder_rotate_right_elbow_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    right_elbow_right_forearm_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_elbow_right_forearm_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    right_forearm_right_wrist_roll_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_forearm_right_wrist_roll_joint
+      pid: {p: 3.0, i: 3.0, d: 0.0}
+    right_wrist_roll_right_wrist_tilt_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_wrist_roll_right_wrist_tilt_joint
+      pid: {p: 3.0, i: 3.0, d: 0.0}
+    right_wrist_tilt_right_wrist_pan_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: right_wrist_tilt_right_wrist_pan_joint
+      pid: {p: 3.0, i: 3.0, d: 0.0}
+    left_arm_left_shoulder_tilt_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_arm_left_shoulder_tilt_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    left_shoulder_tilt_left_shoulder_pan_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_shoulder_tilt_left_shoulder_pan_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    left_shoulder_pan_left_shoulder_rotate_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_shoulder_pan_left_shoulder_rotate_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    left_shoulder_rotate_left_elbow_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_shoulder_rotate_left_elbow_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    left_elbow_left_forearm_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_elbow_left_forearm_joint
+      pid: {p: 3.0, i: 3.0, d: 1.0}
+    left_forearm_left_wrist_roll_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_forearm_left_wrist_roll_joint
+      pid: {p: 3.0, i: 3.0, d: 0.0}
+    left_wrist_roll_left_wrist_tilt_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_wrist_roll_left_wrist_tilt_joint
+      pid: {p: 3.0, i: 3.0, d: 0.0}
+    left_wrist_tilt_left_wrist_pan_joint_position_controller:
+      type: effort_controllers/JointPositionController
+      joint: left_wrist_tilt_left_wrist_pan_joint
+      pid: {p: 3.0, i: 3.0, d: 0.0}
+    nefive_velocity_controller:
+      type: "diff_drive_controller/DiffDriveController"
+      left_wheel: ['base_link_rear_left_wheel_joint', 'base_link_front_left_wheel_joint']
+      right_wheel: ['base_link_rear_right_wheel_joint', 'base_link_front_right_wheel_joint']
+      publish_rate: 50
+      pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 0.03]
+      twist_covariance_diagonal: [0.001, 0.001, 0.001, 1000000.0, 1000000.0, 0.03]
+      cmd_vel_timeout: 0.25
+
+      k_l: 0.1
+      k_r: 0.1
+
+      # Odometry fused with IMU is published by robot_localization, so
+      # no need to publish a TF based on encoders alone.
+      enable_odom_tf: false
+
+      # Wheel separation and radius multipliers
+      wheel_separation_multiplier: 1.0 # default: 1.0
+      wheel_radius_multiplier    : 1.0 # default: 1.0
+
+      # Velocity and acceleration limits
+      # Whenever a min_* is unspecified, default to -max_*
+      linear:
+        x:
+          has_velocity_limits    : true
+          max_velocity           : 2.0   # m/s
+          has_acceleration_limits: true
+          max_acceleration       : 5.0   # m/s^2
+      angular:
+        z:
+          has_velocity_limits    : true
+          max_velocity           : 4.0   # rad/s
+          has_acceleration_limits: true
+          max_acceleration       : 5.0   # rad/s^2
+
+
+
+
+
+
+
+
+
+
+
+
+
+

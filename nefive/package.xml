@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>nefive</name>
+  <version>0.0.0</version>
+  <description>The nefive package</description>
+
+  <author email="keegan@neave.engineering">Keegan Neave</author>
+  <maintainer email="keegan@neave.engineering">keegan</maintainer>
+  <url type="website">https://neave.engineering/nefive/</url>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>
