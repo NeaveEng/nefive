@@ -71,7 +71,7 @@ The design of the physical robot is almost ready for release, there are a [few t
 
 Patron Support
 --
-A massive thank you to my [Patrons](www.patreon.com/neaveeng) who make this work possible, if you are able please consider supporting me on Patreon as it will help continue development of this robot.
+A massive thank you to my [Patrons](https://www.patreon.com/neaveeng) who make this work possible, if you are able please consider supporting me on Patreon as it will help continue development of this robot.
 
 Patrons
 - Angie Neave
