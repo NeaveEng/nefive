@@ -1,9 +1,9 @@
 NE Five
 ==
 
-NE Five is a mobile robitics platform heavily inspired by [Johnny Five](https://en.wikipedia.org/wiki/Short_Circuit_(1986_film)) and is an evolution of the "MacFeegle Prime" robot originally developed for [PiWars](www.piwars.org) by [Keegan Neave](wwww.twitter.com/neaveeng). Work has been kindly supported by my [Patrons](www.patreon.com/neaveeng)!
+NE Five is a mobile robotics platform heavily inspired by [Johnny Five](https://en.wikipedia.org/wiki/Short_Circuit_(1986_film)) and is an evolution of the "MacFeegle Prime" robot originally developed for [PiWars](www.piwars.org) by [Keegan Neave](https://wwww.twitter.com/neaveeng). Work has been kindly supported by my [Patrons](https://www.patreon.com/neaveeng)!
 
-A video of the current version of the robot can be found on my [YouTube channel](www.youtube.com/neaveeng), click the preview to play.  
+A video of the current version of the robot can be found on my [YouTube channel](https://www.youtube.com/neaveeng), click the preview to play.  
 [![What Went Wrong At PiWars 2021?](https://img.youtube.com/vi/SolxEP_HlIM/0.jpg)](https://www.youtube.com/watch?v=SolxEP_HlIM "What Went Wrong At PiWars 2021? - click to play video!")
 
 
@@ -71,7 +71,7 @@ The design of the physical robot is almost ready for release, there are a [few t
 
 Patron Support
 --
-A massive thank you to my [Patrons](www.patreon.com/neaveeng) who make this work possible, if you are able please consider supporting me on Patreon as it will help continue development of this robot.
+A massive thank you to my [Patrons](https://www.patreon.com/neaveeng) who make this work possible, if you are able please consider supporting me on Patreon as it will help continue development of this robot.
 
 Patrons
 - Angie Neave
