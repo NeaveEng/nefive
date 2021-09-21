@@ -55,14 +55,14 @@
       <inertia ixx="0.000283500005025417" ixy="0" ixz="0" iyy="0.000283500005025417" iyz="0" izz="0.000323999993270263" />
     </inertial>
     <visual>
-      <origin rpy="-1.570796 0 0" xyz="0 -0.01 0" />
+      <origin rpy="-4.712389 0 0" xyz="0 -0.01 0" />
       <geometry>
         <cylinder length="0.02" radius="0.025" />
       </geometry>
       <material name="black" />
     </visual>
     <collision>
-      <origin rpy="-1.570796 0 0" xyz="0 -0.01 0" />
+      <origin rpy="-4.712389 0 0" xyz="0 -0.01 0" />
       <geometry>
         <cylinder length="0.02" radius="0.025" />
       </geometry>
@@ -115,14 +115,14 @@
       <inertia ixx="0.000283500005025417" ixy="0" ixz="0" iyy="0.000283500005025417" iyz="0" izz="0.000323999993270263" />
     </inertial>
     <visual>
-      <origin rpy="-1.570796 0 0" xyz="0 0.01 0" />
+      <origin rpy="-4.712389 0 0" xyz="0 0.01 0" />
       <geometry>
         <cylinder length="0.02" radius="0.025" />
       </geometry>
       <material name="black" />
     </visual>
     <collision>
-      <origin rpy="-1.570796 0 0" xyz="0 0.01 0" />
+      <origin rpy="-4.712389 0 0" xyz="0 0.01 0" />
       <geometry>
         <cylinder length="0.02" radius="0.025" />
       </geometry>
@@ -264,8 +264,6 @@
       </geometry>
     </collision>
   </link>
-
-  <!-- #region - Eyes -->
   <link name="eyes">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -331,7 +329,6 @@
       <inertia ixx="0.000283500005025417" ixy="0" ixz="0" iyy="0.000283500005025417" iyz="0" izz="0.000323999993270263" />
     </inertial>
   </link>
-
   <link name="right_eye_ring">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -379,9 +376,6 @@
       <inertia ixx="0.000283500005025417" ixy="0" ixz="0" iyy="0.000283500005025417" iyz="0" izz="0.000323999993270263" />
     </inertial>
   </link>
-
-<!-- #endregion -->
-
   <link name="arms">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -780,7 +774,7 @@
       <origin rpy="0 0.418879 0" xyz="0.0209 0.088 0.021" />
       <geometry>
         <box size="0.07 0.02 0.01" />
-      </geometry>      
+      </geometry>
       <material name="black" />
     </visual>
     <collision>
@@ -882,7 +876,7 @@
     <child link="left_eye_inner" />
   </joint>
   <joint name="left_eye_inner_left_camera_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="-1.57 0 -1.57 "/>
+    <origin rpy="-1.57 0 -1.57" />
     <parent link="left_eye_inner" />
     <child link="left_camera_pointcloud_frame" />
   </joint>
@@ -945,7 +939,7 @@
     <limit lower="0" upper="0" effort="1000" velocity="1000" />
   </joint>
   <joint name="right_forearm_right_wrist_roll_joint" type="revolute">
-    <origin rpy="0 4.712389 0" xyz="0.0683 -0.0025 0" />
+    <origin rpy="0 4.712734 0" xyz="0.0683 -0.0025 0" />
     <parent link="right_forearm" />
     <child link="right_wrist_roll" />
     <axis xyz="0 0 1" />
@@ -1052,18 +1046,19 @@
     <publishWheelJointState>true</publishWheelJointState>
     <updateRate>100.0</updateRate>
     <leftJoint>base_link_rear_left_wheel_joint</leftJoint>
+    <leftJoint>base_link_front_left_wheel_joint</leftJoint>
     <rightJoint>base_link_rear_right_wheel_joint</rightJoint>
-    <wheelSeparation>1.0</wheelSeparation>
-    <wheelDiameter>0.58</wheelDiameter>
+    <rightJoint>base_link_front_right_wheel_joint</rightJoint>
     <wheelAcceleration>1.0</wheelAcceleration>
     <torque>20</torque>
     <commandTopic>/nefive/cmd_vel</commandTopic>
     <odometryTopic>odom</odometryTopic>
     <odometryFrame>odom</odometryFrame>
     <robotBaseFrame>base_link</robotBaseFrame>
+    <robotNamespace>nefive</robotNamespace>
   </plugin>
   <plugin name="gazebo_ros_imu_controller_base" filename="libgazebo_ros_imu.so">
-    <!-- <robotNamespace></robotNamespace> -->
+    <robotNamespace>nefive</robotNamespace>
     <topicName>base/imu/data</topicName>
     <serviceName>base/imu/service</serviceName>
     <bodyName>base_link</bodyName>
@@ -1074,7 +1069,7 @@
     <gaussianNoise>0</gaussianNoise>
   </plugin>
   <plugin name="gazebo_ros_imu_controller_head" filename="libgazebo_ros_imu.so">
-    <!-- <robotNamespace></robotNamespace> -->
+    <robotNamespace>nefive</robotNamespace>
     <topicName>head/imu/data</topicName>
     <serviceName>head/imu/service</serviceName>
     <bodyName>head</bodyName>
@@ -1099,9 +1094,17 @@
   <material>Gazebo/Black</material>
 </gazebo>
 <gazebo reference="rear_right_wheel">
+  <mu1 value="200.0" />
+  <mu2 value="100.0" />
+  <kp value="10000000.0" />
+  <kd value="1.0" />
   <material>Gazebo/Black</material>
 </gazebo>
 <gazebo reference="front_right_wheel">
+  <mu1 value="200.0" />
+  <mu2 value="100.0" />
+  <kp value="10000000.0" />
+  <kd value="1.0" />
   <material>Gazebo/Black</material>
 </gazebo>
 <gazebo reference="rear_right_idler">
@@ -1111,9 +1114,17 @@
   <material>Gazebo/Black</material>
 </gazebo>
 <gazebo reference="front_left_wheel">
+  <mu1 value="200.0" />
+  <mu2 value="100.0" />
+  <kp value="10000000.0" />
+  <kd value="1.0" />
   <material>Gazebo/Black</material>
 </gazebo>
 <gazebo reference="rear_left_wheel">
+  <mu1 value="200.0" />
+  <mu2 value="100.0" />
+  <kp value="10000000.0" />
+  <kd value="1.0" />
   <material>Gazebo/Black</material>
 </gazebo>
 <gazebo reference="lower_torso">
@@ -1215,7 +1226,7 @@
     <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
   </joint>
   <actuator name="rear_left_wheel_actuator">
-    <mechanicalReduction>7</mechanicalReduction>
+    <mechanicalReduction>1</mechanicalReduction>
     <hardwareInterface>VelocityJointInterface</hardwareInterface>
   </actuator>
 </transmission>
@@ -1224,8 +1235,8 @@
   <joint name="base_link_rear_right_wheel_joint">
     <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
   </joint>
-  <actuator name="right_wheel_actuator">
-    <mechanicalReduction>7</mechanicalReduction>
+  <actuator name="rear_right_wheel_actuator">
+    <mechanicalReduction>1</mechanicalReduction>
     <hardwareInterface>VelocityJointInterface</hardwareInterface>
   </actuator>
 </transmission>
@@ -1235,7 +1246,7 @@
     <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
   </joint>
   <actuator name="front_left_wheel_actuator">
-    <mechanicalReduction>7</mechanicalReduction>
+    <mechanicalReduction>1</mechanicalReduction>
     <hardwareInterface>VelocityJointInterface</hardwareInterface>
   </actuator>
 </transmission>
@@ -1245,7 +1256,7 @@
     <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
   </joint>
   <actuator name="front_right_wheel_actuator">
-    <mechanicalReduction>7</mechanicalReduction>
+    <mechanicalReduction>1</mechanicalReduction>
     <hardwareInterface>VelocityJointInterface</hardwareInterface>
   </actuator>
 </transmission>
@@ -1429,60 +1440,58 @@
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
-
- <gazebo reference="left_eye_inner">
-    <sensor type="multicamera" name="stereo_camera">
-      <update_rate>30.0</update_rate>
-      <camera name="left">
-        <horizontal_fov>2.44</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>300</far>
-        </clip>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.007</stddev>
-        </noise>
-      </camera>
-      <camera name="right">
-        <pose>0 -0.06 0 0 0 0</pose>
-        <horizontal_fov>2.44</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>300</far>
-        </clip>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.007</stddev>
-        </noise>
-      </camera>
-      <plugin name="stereo_camera_controller" filename="libgazebo_ros_multicamera.so">
-        <alwaysOn>true</alwaysOn>
-        <updateRate>0.0</updateRate>
-        <cameraName>/camera</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
-        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>left_camera_pointcloud_frame</frameName>
-        <hackBaseline>0.07</hackBaseline>
-        <distortionK1>0.0</distortionK1>
-        <distortionK2>0.0</distortionK2>
-        <distortionK3>0.0</distortionK3>
-        <distortionT1>0.0</distortionT1>
-        <distortionT2>0.0</distortionT2>
-      </plugin>
-    </sensor>
-  </gazebo>
-
+<gazebo reference="left_eye_inner">
+  <sensor type="multicamera" name="stereo_camera">
+    <update_rate>30.0</update_rate>
+    <camera name="left">
+      <horizontal_fov>2.44</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.02</near>
+        <far>300</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.007</stddev>
+      </noise>
+    </camera>
+    <camera name="right">
+      <pose>0 -0.06 0 0 0 0</pose>
+      <horizontal_fov>2.44</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.02</near>
+        <far>300</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.007</stddev>
+      </noise>
+    </camera>
+    <plugin name="stereo_camera_controller" filename="libgazebo_ros_multicamera.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>0.0</updateRate>
+      <cameraName>/camera</cameraName>
+      <imageTopicName>image_raw</imageTopicName>
+      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+      <frameName>left_camera_pointcloud_frame</frameName>
+      <hackBaseline>0.07</hackBaseline>
+      <distortionK1>0.0</distortionK1>
+      <distortionK2>0.0</distortionK2>
+      <distortionK3>0.0</distortionK3>
+      <distortionT1>0.0</distortionT1>
+      <distortionT2>0.0</distortionT2>
+    </plugin>
+  </sensor>
+</gazebo>
 </robot>
