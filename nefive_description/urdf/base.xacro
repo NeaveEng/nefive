@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+  <link name="base_link" />
+  <link name="chassis">
+    <visual>
+      <geometry>
+        <box size="0.104 0.147 0.068" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+
+  <joint name="base_link_chassis_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="chassis" />
+  </joint>
+  <joint name="base_link_rear_right_wheel_joint" type="continuous">
+    <origin xyz="-0.07 -0.078 -0.022" />
+    <parent link="chassis" />
+    <child link="rear_right_wheel" />
+    <axis xyz="0 1 0" />
+  </joint>
+  <joint name="base_link_front_right_wheel_joint" type="continuous">
+    <origin xyz="0.07 -0.078 -0.022" />
+    <parent link="chassis" />
+    <child link="front_right_wheel" />
+    <axis xyz="0 1 0" />
+  </joint>
+  <joint name="base_link_front_left_wheel_joint" type="continuous">
+    <origin xyz="0.07 0.078 -0.022" />
+    <parent link="chassis" />
+    <child link="front_left_wheel" />
+    <axis xyz="0 1 0" />
+  </joint>
+  <joint name="base_link_rear_left_wheel_joint" type="continuous">
+    <origin xyz="-0.07 0.078 -0.022" />
+    <parent link="chassis" />
+    <child link="rear_left_wheel" />
+    <axis xyz="0 1 0" />
+  </joint>
+</robot>

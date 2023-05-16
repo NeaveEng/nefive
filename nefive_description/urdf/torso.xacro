@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+  <link name="lower_torso">
+    <visual>
+      <origin xyz="0 0 0.03" />
+      <geometry>
+        <box size="0.015 0.06 0.06" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+  <link name="upper_torso">
+    <visual>
+      <origin xyz="0 0 0.03" />
+      <geometry>
+        <box size="0.015 0.06 0.06" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+  <link name="chest_box">
+    <visual>
+      <origin xyz="0.0228 0 0.0564" />
+      <geometry>
+        <box size="0.05 0.07 0.05" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+
+  <joint name="base_link_lower_torso_joint" type="fixed">
+    <origin rpy="0 5.497787 0" xyz="-0.0241 0 0.0285" />
+    <parent link="chassis" />
+    <child link="lower_torso" />
+  </joint>
+  <joint name="lower_torso_upper_torso_joint" type="fixed">
+    <origin rpy="0 1.570451 0" xyz="0 0 0.06" />
+    <parent link="lower_torso" />
+    <child link="upper_torso" />
+  </joint>
+  <joint name="upper_torso_chest_box_joint" type="fixed">
+    <origin rpy="0 5.497787 0" xyz="0.0305 0 0.0269" />
+    <parent link="upper_torso" />
+    <child link="chest_box" />
+  </joint>
+</robot>

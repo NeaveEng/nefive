@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+  <link name="head_pan">
+    <visual>
+      <geometry>
+        <cylinder length="0.002" radius="0.02" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+  <link name="head_tilt">
+    <visual>
+      <geometry>
+        <box size="0.04 0.04 0.001" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+  <link name="head">
+    <visual>
+      <origin xyz="-0.0039 0 0.0283" />
+      <geometry>
+        <box size="0.107 0.11 0.054" />
+      </geometry>
+      <material name="grey" />
+    </visual>
+  </link>
+  <link name="eyes">
+    <visual>
+      <geometry>
+        <cylinder length="0" radius="0" />
+      </geometry>
+      <material name="Default-Material" />
+    </visual>
+  </link>
+  <link name="left_eye_ring">
+    <visual>
+      <origin rpy="0 1.570451 0" />
+      <geometry>
+        <cylinder length="0.002" radius="0.02" />
+      </geometry>
+      <material name="Default-Material" />
+    </visual>
+  </link>
+  <link name="left_eye_inner">
+    <visual>
+      <origin rpy="0 1.570451 0" xyz="0.0006 0 0" />
+      <geometry>
+        <cylinder length="0.002" radius="0.01" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+  <link name="left_camera_pointcloud_frame">
+  </link>
+  <link name="right_eye_ring">
+    <visual>
+      <origin rpy="0 1.570451 0" />
+      <geometry>
+        <cylinder length="0.002" radius="0.02" />
+      </geometry>
+      <material name="Default-Material" />
+    </visual>
+  </link>
+  <link name="right_eye_inner">
+    <visual>
+      <origin rpy="0 1.570451 0" xyz="0.0006 0 0" />
+      <geometry>
+        <cylinder length="0.002" radius="0.01" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+  <link name="right_camera">
+  </link>
+  
+  <joint name="chest_box_head_pan_joint" type="revolute">
+    <origin xyz="0.025 0 0.0819" />
+    <parent link="chest_box" />
+    <child link="head_pan" />
+    <axis xyz="0 0 1" />
+    <limit lower="-0.785398" upper="0.785398" effort="1000" velocity="1000" />
+  </joint>
+  <joint name="head_pan_head_tilt_joint" type="revolute">
+    <origin xyz="0 0 0.035" />
+    <parent link="head_pan" />
+    <child link="head_tilt" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-0.785398" upper="0.785398" effort="1000" velocity="1000" />
+  </joint>
+  <joint name="head_tilt_head_joint" type="fixed">
+    <parent link="head_tilt" />
+    <child link="head" />
+  </joint>
+  <joint name="head_eyes_joint" type="fixed">
+    <origin xyz="0.05 0 0.03" />
+    <parent link="head" />
+    <child link="eyes" />
+  </joint>
+  <joint name="eyes_left_eye_ring_joint" type="fixed">
+    <origin xyz="0 0.03 0" />
+    <parent link="eyes" />
+    <child link="left_eye_ring" />
+  </joint>
+  <joint name="left_eye_ring_left_eye_inner_joint" type="fixed">
+    <parent link="left_eye_ring" />
+    <child link="left_eye_inner" />
+  </joint>
+  <joint name="left_eye_inner_left_camera_joint" type="fixed">
+    <origin rpy="-1.57 0 -1.57" />
+    <parent link="left_eye_inner" />
+    <child link="left_camera_pointcloud_frame" />
+  </joint>
+  <joint name="eyes_right_eye_ring_joint" type="fixed">
+    <origin xyz="0 -0.03 0" />
+    <parent link="eyes" />
+    <child link="right_eye_ring" />
+  </joint>
+  <joint name="right_eye_ring_right_eye_inner_joint" type="fixed">
+    <parent link="right_eye_ring" />
+    <child link="right_eye_inner" />
+  </joint>
+  <joint name="right_eye_inner_right_camera_joint" type="fixed">
+    <parent link="right_eye_inner" />
+    <child link="right_camera" />
+  </joint>
+
+
+
+</robot>

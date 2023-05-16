@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<link name="rear_right_wheel">
+    <visual>
+      <origin rpy="-4.712389 0 0" xyz="0 -0.01 0" />
+      <geometry>
+        <cylinder length="0.02" radius="0.025" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+  <link name="front_right_wheel">
+    <visual>
+      <origin rpy="-4.712389 0 0" xyz="0 -0.01 0" />
+      <geometry>
+        <cylinder length="0.02" radius="0.025" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+  <link name="front_left_wheel">
+    <visual>
+      <origin rpy="-4.712389 0 0" xyz="0 0.01 0" />
+      <geometry>
+        <cylinder length="0.02" radius="0.025" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+  <link name="rear_left_wheel">
+    <visual>
+      <origin rpy="-4.712389 0 0" xyz="0 0.01 0" />
+      <geometry>
+        <cylinder length="0.02" radius="0.025" />
+      </geometry>
+      <material name="black" />
+    </visual>
+  </link>
+</robot>
