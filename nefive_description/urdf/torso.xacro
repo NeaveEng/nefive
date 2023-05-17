@@ -28,25 +28,36 @@
     </visual>
   </link>
 
+  <link name="shoulder_centre" />
+
   <joint name="base_link_lower_torso_joint" type="fixed">
     <origin rpy="0 5.497787 0" xyz="-0.0241 0 0.0285" />
     <parent link="chassis" />
     <child link="lower_torso" />
   </joint>
+
   <joint name="lower_torso_upper_torso_joint" type="fixed">
     <origin rpy="0 1.570451 0" xyz="0 0 0.06" />
     <parent link="lower_torso" />
     <child link="upper_torso" />
   </joint>
+
   <joint name="upper_torso_chest_box_joint" type="fixed">
     <origin rpy="0 5.497787 0" xyz="0.0305 0 0.0269" />
     <parent link="upper_torso" />
     <child link="chest_box" />
   </joint>
+
   <joint name="chest_box_arms_joint" type="fixed">
     <origin xyz="0.025 0 0.075" />
     <parent link="chest_box" />
-    <child link="arms" />
+    <child link="shoulder_centre" />
+  </joint>
+
+  <joint name="shoulder_centre_left_arm_joint" type="fixed">
+    <origin xyz="-0.10 0 0" />
+    <parent link="shoulder_centre" />
+    <child link="left_arm" />
   </joint>
   
 </robot>
