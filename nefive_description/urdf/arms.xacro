@@ -18,24 +18,24 @@
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
-      <material name="green" />
+      <material name="grey" />
     </visual>
   </link>
 
   <link name="left_shoulder_rotate">
     <visual>
-      <origin rpy="-4.712389 0 -4.712389" xyz="0 0 0" />
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
       <material name="grey" />
     </visual>
     <visual>
-      <origin rpy="0 1.570451 0" xyz="0.031 -0.002 0" />
+      <origin rpy="0 0 0" xyz="0 0 0.03" />
       <geometry>
-        <cylinder length="-0.06" radius="0.005" />
+        <cylinder length="0.06" radius="0.005" />
       </geometry>
-      <material name="grey" />
+      <material name="green" />
     </visual>
   </link>
 
