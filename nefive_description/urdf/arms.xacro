@@ -69,7 +69,7 @@
       <geometry>
         <cylinder length="0.034" radius="0.005" />
       </geometry>
-      <material name="green" />
+      <material name="grey" />
     </visual>
   </link>
 
@@ -80,9 +80,17 @@
       </geometry>
       <material name="grey" />
     </visual>
+    
+    <visual>
+      <origin rpy="0 1.570451 0" xyz="0.016 0 0" />
+      <geometry>
+        <cylinder length="0.032" radius="0.005" />
+      </geometry>
+      <material name="grey" />
+    </visual>
   </link>
 
-  <link name="left_wrist_pan_old">
+  <link name="left_wrist_tilt">
     <visual>
       <geometry>
         <cylinder length="0.01" radius="0.0005" />
@@ -90,6 +98,7 @@
       <material name="grey" />
     </visual>
   </link>
+
   <link name="left_hand">
     <visual>
       <geometry>
@@ -147,17 +156,17 @@
     <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_pan_left_wrist_pan_old_joint" type="revolute">
-    <origin rpy="-4.712389 0 0" xyz="0.002 0 0" />
+  <joint name="left_wrist_pan_left_wrist_tilt_joint" type="revolute">
+    <origin rpy="1.57 0 0" xyz="0.036 0 0" />
     <parent link="left_wrist_pan" />
-    <child link="left_wrist_pan_old" />
-    <axis xyz="0 0 1" />
+    <child link="left_wrist_tilt" />
+    <axis xyz="0 0 -1" />
     <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_pan_old_left_hand_joint" type="fixed">
+  <joint name="left_wrist_tilt_left_hand_joint" type="fixed">
     <origin xyz="0.012 0 0" />
-    <parent link="left_wrist_pan_old" />
+    <parent link="left_wrist_tilt" />
     <child link="left_hand" />
   </joint> 
   
