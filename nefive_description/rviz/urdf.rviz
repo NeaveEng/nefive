@@ -69,11 +69,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        left_forearm:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         left_hand:
           Alpha: 1
           Show Axes: false
@@ -98,17 +93,17 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        left_wrist_flappy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         left_wrist_pan:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        left_wrist_roll:
+        left_wrist_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_tilt:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -140,18 +135,30 @@ Visualization Manager:
           Value: true
         left_arm:
           Value: true
+        left_elbow:
+          Value: true
         left_hand:
           Value: true
         left_indicator:
           Value: true
+        left_shoulder_flappy:
+          Value: true
+        left_shoulder_foreaft:
+          Value: true
+        left_shoulder_rotate:
+          Value: true
         left_wrist_pan:
+          Value: true
+        left_wrist_rotate:
+          Value: true
+        left_wrist_tilt:
           Value: true
         right_indicator:
           Value: true
         shoulder_centre:
           Value: true
       Marker Alpha: 1
-      Marker Scale: 0.10000000149011612
+      Marker Scale: 0.05000000074505806
       Name: TF
       Show Arrows: true
       Show Axes: true
@@ -168,7 +175,15 @@ Visualization Manager:
             {}
           shoulder_centre:
             left_arm:
-              {}
+              left_shoulder_flappy:
+                left_shoulder_foreaft:
+                  left_shoulder_rotate:
+                    left_elbow:
+                      left_wrist_rotate:
+                        left_wrist_pan:
+                          left_wrist_tilt:
+                            left_hand:
+                              {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -184,7 +199,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.9728579521179199
+      Distance: 0.195679172873497
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -192,17 +207,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: -0.019410643726587296
+        Y: 0.0012469419743865728
+        Z: -0.0327710397541523
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5103985667228699
+      Pitch: 0.4103987216949463
       Target Frame: left_shoulder_flappy
-      Yaw: 2.4753997325897217
+      Yaw: 3.805400848388672
     Saved: ~
 Window Geometry:
   Displays:
@@ -214,5 +229,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 2126
-  Y: 391
+  X: 212
+  Y: 130
