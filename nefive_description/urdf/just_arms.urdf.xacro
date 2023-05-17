@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot name="ne-five-arms" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+  <link name="base_link" />
+
+
+  <joint name="base_link_arms_joint" type="fixed">
+    <origin xyz="0 0 0.24" />
+    <parent link="base_link" />
+    <child link="arms" />
+  </joint>
+
+  <xacro:include filename="arms.xacro" />  
+  <xacro:include filename="materials.xacro" />  
+</robot>

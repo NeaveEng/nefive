@@ -178,11 +178,6 @@
     </visual>
   </link>
 
-<joint name="chest_box_arms_joint" type="fixed">
-    <origin xyz="0.025 0 0.075" />
-    <parent link="chest_box" />
-    <child link="arms" />
-  </joint>
   <joint name="arms_right_arm_joint" type="fixed">
     <origin xyz="0 -0.06 0" />
     <parent link="arms" />

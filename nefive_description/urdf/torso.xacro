@@ -43,4 +43,10 @@
     <parent link="upper_torso" />
     <child link="chest_box" />
   </joint>
+  <joint name="chest_box_arms_joint" type="fixed">
+    <origin xyz="0.025 0 0.075" />
+    <parent link="chest_box" />
+    <child link="arms" />
+  </joint>
+  
 </robot>

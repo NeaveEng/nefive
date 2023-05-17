@@ -1,23 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="nefive">
-  <material name="grey">
-    <color rgba="0.5 0.5 0.5 1" />
-  </material>
-  <material name="black">
-    <color rgba="0 0 0 1" />
-  </material>
-  <material name="Default-Material">
-    <color rgba="1 1 1 1" />
-  </material>
-
+  <xacro:include filename="materials.xacro" />  
   <xacro:include filename="base.xacro" />  
   <xacro:include filename="wheels.xacro" />  
   <xacro:include filename="torso.xacro" />  
   <xacro:include filename="head.xacro" />
-  <xacro:include filename="arms.xacro" />
-
-
-
-  
-  
+  <xacro:include filename="arms.xacro" />  
 </robot>
