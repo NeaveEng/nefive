@@ -1,23 +1,180 @@
 Panels:
   - Class: rviz/Displays
+    Help Height: 70
     Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /TF1
+      Splitter Ratio: 0.5
+    Tree Height: 302
   - Class: rviz/Views
+    Expanded:
+      - /Current View1
     Name: Views
+    Splitter Ratio: 0.5
+Preferences:
+  PromptSaveOnExit: true
+Toolbars:
+  toolButtonStyle: 2
 Visualization Manager:
+  Class: ""
   Displays:
-    - Class: rviz/Grid
-      Name: Grid
-      Value: true
-    - Alpha: 0.8
-      Class: rviz/RobotModel
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
       Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Alpha: 0.800000011920929
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        backward_indicator:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        forward_indicator:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_elbow:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_forearm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_indicator:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_shoulder_flappy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_shoulder_foreaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_shoulder_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_flappy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_pan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_roll:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_indicator:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        shoulder_centre:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
       Value: true
+      Visual Enabled: true
     - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        backward_indicator:
+          Value: true
+        base_link:
+          Value: true
+        forward_indicator:
+          Value: true
+        left_arm:
+          Value: true
+        left_hand:
+          Value: true
+        left_indicator:
+          Value: true
+        left_wrist_pan:
+          Value: true
+        right_indicator:
+          Value: true
+        shoulder_centre:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 0.10000000149011612
       Name: TF
-      Value: false
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        base_link:
+          backward_indicator:
+            {}
+          forward_indicator:
+            {}
+          left_indicator:
+            {}
+          right_indicator:
+            {}
+          shoulder_centre:
+            left_arm:
+              {}
+      Update Interval: 0
+      Value: true
+  Enabled: true
   Global Options:
+    Background Color: 199; 199; 199
+    Default Light: true
     Fixed Frame: base_link
     Frame Rate: 30
   Name: root
@@ -27,11 +184,35 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.7
+      Distance: 0.9728579521179199
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Field of View: 0.7853981852531433
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Focal Shape Fixed Size: false
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
       Name: Current View
-      Pitch: 0.33
-      Value: Orbit (rviz)
-      Yaw: 5.5
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.5103985667228699
+      Target Frame: left_shoulder_flappy
+      Yaw: 2.4753997325897217
+    Saved: ~
 Window Geometry:
+  Displays:
+    collapsed: false
   Height: 800
+  Hide Left Dock: false
+  Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd000000010000000000000156000002cafc0200000002fb000000100044006900730070006c006100790073010000003b000001af000000c700fffffffb0000000a0056006900650077007301000001f000000115000000a000ffffff00000354000002ca00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Views:
+    collapsed: false
   Width: 1200
+  X: 2126
+  Y: 391

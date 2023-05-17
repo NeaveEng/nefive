@@ -1,14 +1,50 @@
 <?xml version="1.0"?>
 <robot name="ne-five-arms" xmlns:xacro="http://www.ros.org/wiki/xacro" >
   <link name="base_link" />
+  <link name="shoulder_centre" />
 
-
-  <joint name="base_link_arms_joint" type="fixed">
-    <origin xyz="0 0 0.24" />
-    <parent link="base_link" />
-    <child link="arms" />
+  <joint name="shoulder_centre_left_arm_joint" type="fixed">
+    <origin xyz="-0.10 0 0" />
+    <parent link="shoulder_centre" />
+    <child link="left_arm" />
   </joint>
 
+  <link name="forward_indicator" />
+  <link name="backward_indicator" />  
+  <link name="left_indicator" />
+  <link name="right_indicator" />
+
+  <joint name="base_link_forward_indicator" type="fixed">
+    <origin xyz="0 0.1 0" />
+    <parent link="base_link" />
+    <child link="forward_indicator" />
+  </joint>  
+
+  <joint name="base_link_backward_indicator" type="fixed">
+    <origin xyz="0 -0.1 0" />
+    <parent link="base_link" />
+    <child link="backward_indicator" />
+  </joint>  
+  
+  <joint name="base_link_left_indicator" type="fixed">
+    <origin xyz="-0.1 0 0" />
+    <parent link="base_link" />
+    <child link="left_indicator" />
+  </joint>  
+  
+  <joint name="base_link_right_indicator" type="fixed">
+    <origin xyz="0.1 0 0" />
+    <parent link="base_link" />
+    <child link="right_indicator" />
+  </joint>
+
+  <joint name="base_link_shoulder_centre" type="fixed">
+    <origin xyz="0 0 0.24" />
+    <parent link="base_link" />
+    <child link="shoulder_centre" />
+  </joint>
+  
   <xacro:include filename="arms.xacro" />  
   <xacro:include filename="materials.xacro" />  
+
 </robot>
