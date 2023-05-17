@@ -64,9 +64,16 @@
       </geometry>
       <material name="grey" />
     </visual>
+    <visual>
+      <origin rpy="0 1.570451 0" xyz="0.017 0 0" />
+      <geometry>
+        <cylinder length="0.034" radius="0.005" />
+      </geometry>
+      <material name="green" />
+    </visual>
   </link>
 
-  <link name="left_wrist_flappy">
+  <link name="left_wrist_pan">
     <visual>
       <geometry>
         <cylinder length="0.01" radius="0.0005" />
@@ -74,7 +81,8 @@
       <material name="grey" />
     </visual>
   </link>
-  <link name="left_wrist_pan">
+
+  <link name="left_wrist_pan_old">
     <visual>
       <geometry>
         <cylinder length="0.01" radius="0.0005" />
@@ -131,25 +139,25 @@
     <limit effort="1000" lower="-1.570796" upper="1.570796" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_rotate_left_wrist_flappy_joint" type="revolute">
-    <origin rpy="0 1.570796 -4.712389" xyz="0 0 -0.00636" />
+  <joint name="left_wrist_rotate_left_wrist_pan_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0.034 0 0" />
     <parent link="left_wrist_rotate" />
-    <child link="left_wrist_flappy" />
-    <axis xyz="0 0 1" />
-    <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
-  </joint>
-
-  <joint name="left_wrist_flappy_left_wrist_pan_joint" type="revolute">
-    <origin rpy="-4.712389 0 0" xyz="0.002 0 0" />
-    <parent link="left_wrist_flappy" />
     <child link="left_wrist_pan" />
     <axis xyz="0 0 1" />
     <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_pan_left_hand_joint" type="fixed">
-    <origin xyz="0.012 0 0" />
+  <joint name="left_wrist_pan_left_wrist_pan_old_joint" type="revolute">
+    <origin rpy="-4.712389 0 0" xyz="0.002 0 0" />
     <parent link="left_wrist_pan" />
+    <child link="left_wrist_pan_old" />
+    <axis xyz="0 0 1" />
+    <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
+  </joint>
+
+  <joint name="left_wrist_pan_old_left_hand_joint" type="fixed">
+    <origin xyz="0.012 0 0" />
+    <parent link="left_wrist_pan_old" />
     <child link="left_hand" />
   </joint> 
   
