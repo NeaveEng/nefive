@@ -14,17 +14,17 @@
 
   <link name="left_shoulder_foreaft">
     <visual>
-      <origin rpy="0 0 0" xyz="0 -0.002 0" />
+      <origin rpy="0 1.570451 0" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
-      <material name="grey" />
+      <material name="green" />
     </visual>
   </link>
 
   <link name="left_shoulder_rotate">
     <visual>
-      <origin rpy="-4.712389 0 -4.712389" xyz="0.0001 -0.002 0" />
+      <origin rpy="-4.712389 0 -4.712389" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
@@ -38,6 +38,7 @@
       <material name="grey" />
     </visual>
   </link>
+
   <link name="left_elbow">
     <visual>
       <origin rpy="0 1.570451 0" />
