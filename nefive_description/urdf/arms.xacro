@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <link name="left_arm" />
+  
+<link name="arms" />
+  
+<xacro:macro name="arm" params="prefix reflect">
+  <link name="${prefix}_arm" />
 
-  <link name="left_shoulder_flappy">
+  <link name="${prefix}_shoulder_flappy">
     <visual>
-      <origin rpy="1.570451 0 0" xyz="0 0 0" />
+      <origin rpy="${pi/2} 0 0" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.02" radius="0.0005" />
       </geometry>
@@ -12,9 +16,9 @@
     </visual>
   </link>
 
-  <link name="left_shoulder_foreaft">
+  <link name="${prefix}_shoulder_foreaft">
     <visual>
-      <origin rpy="0 1.570451 0" xyz="0 0 0" />
+      <origin rpy="0 ${pi/2} 0" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
@@ -22,7 +26,7 @@
     </visual>
   </link>
 
-  <link name="left_shoulder_rotate">
+  <link name="${prefix}_shoulder_rotate">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
@@ -39,16 +43,16 @@
     </visual>
   </link>
 
-  <link name="left_elbow">
+  <link name="${prefix}_elbow">
     <visual>
-      <origin rpy="1.570451 0 0" xyz="0 0 0" />
+      <origin rpy="${pi/2} 0 0" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
       <material name="grey" />
     </visual>
     <visual>
-      <origin rpy="0 1.570451 0" xyz="0.021 0 0" />
+      <origin rpy="0 ${pi/2} 0" xyz="0.021 0 0" />
       <geometry>
         <cylinder length="0.042" radius="0.005" />
       </geometry>
@@ -56,16 +60,16 @@
     </visual>
   </link>
 
-  <link name="left_wrist_rotate">
+  <link name="${prefix}_wrist_rotate">
     <visual>
-      <origin rpy="0 1.570451 0" xyz="0 0 0" />
+      <origin rpy="0 ${pi/2} 0" xyz="0 0 0" />
       <geometry>
         <cylinder length="0.004" radius="0.0005" />
       </geometry>
       <material name="grey" />
     </visual>
     <visual>
-      <origin rpy="0 1.570451 0" xyz="0.017 0 0" />
+      <origin rpy="0 ${pi/2} 0" xyz="0.017 0 0" />
       <geometry>
         <cylinder length="0.034" radius="0.005" />
       </geometry>
@@ -73,7 +77,7 @@
     </visual>
   </link>
 
-  <link name="left_wrist_pan">
+  <link name="${prefix}_wrist_pan">
     <visual>
       <geometry>
         <cylinder length="0.01" radius="0.0005" />
@@ -82,7 +86,7 @@
     </visual>
     
     <visual>
-      <origin rpy="0 1.570451 0" xyz="0.016 0 0" />
+      <origin rpy="0 ${pi/2} 0" xyz="0.016 0 0" />
       <geometry>
         <cylinder length="0.032" radius="0.005" />
       </geometry>
@@ -90,7 +94,7 @@
     </visual>
   </link>
 
-  <link name="left_wrist_tilt">
+  <link name="${prefix}_wrist_tilt">
     <visual>
       <geometry>
         <cylinder length="0.01" radius="0.0005" />
@@ -99,7 +103,7 @@
     </visual>
   </link>
 
-  <link name="left_hand">
+  <link name="${prefix}_hand">
     <visual>
       <geometry>
         <box size="0.02 0.02 0.02" />
@@ -108,68 +112,78 @@
     </visual>
   </link>
 
-  <joint name="left_arm_left_shoulder_flappy_joint" type="revolute">
+  <joint name="arms_${prefix}_arm" type="fixed">
+    <origin rpy="0 0 0" xyz="${reflect * -0.1} 0 0" />
+    <parent link="arms" />
+    <child link="${prefix}_arm" />
+  </joint>
+
+  <joint name="${prefix}_arm_${prefix}_shoulder_flappy_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0" />
-    <parent link="left_arm" />
-    <child link="left_shoulder_flappy" />
-    <axis xyz="0 1 0" />
-    <limit effort="1000" lower="-1.570796" upper="1.570796" velocity="1000" />
+    <parent link="${prefix}_arm" />
+    <child link="${prefix}_shoulder_flappy" />
+    <axis xyz="0 ${reflect * 1} 0" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_shoulder_flappy_left_shoulder_foreaft_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="-0.025 0 0" />
-    <parent link="left_shoulder_flappy" />
-    <child link="left_shoulder_foreaft" />
+  <joint name="${prefix}_shoulder_flappy_${prefix}_shoulder_foreaft_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="${reflect * -0.025} 0 0" />
+    <parent link="${prefix}_shoulder_flappy" />
+    <child link="${prefix}_shoulder_foreaft" />
     <axis xyz="1 0 0" />
-    <limit effort="1000" lower="-1.570796" upper="1.570796" velocity="1000" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_shoulder_foreaft_left_shoulder_rotate_joint" type="revolute">
-    <origin rpy="0 0 -1.570451" xyz="0 0 -0.067" />
-    <parent link="left_shoulder_foreaft" />
-    <child link="left_shoulder_rotate" />
-    <axis xyz="0 0 1" />
-    <limit effort="1000" lower="-1.570796" upper="1.570796" velocity="1000" />
+  <joint name="${prefix}_shoulder_foreaft_${prefix}_shoulder_rotate_joint" type="revolute">
+    <origin rpy="0 0 -${pi/2}" xyz="0 0 -0.067" />
+    <parent link="${prefix}_shoulder_foreaft" />
+    <child link="${prefix}_shoulder_rotate" />
+    <axis xyz="0 0 ${reflect * 1}" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_shoulder_rotate_left_elbow_joint" type="revolute">
-    <origin rpy="0 3.14 0" xyz="0 0 0" />
-    <parent link="left_shoulder_rotate" />
-    <child link="left_elbow" />
+  <joint name="${prefix}_shoulder_rotate_${prefix}_elbow_joint" type="revolute">
+    <origin rpy="0 ${pi} 0" xyz="0 0 0" />
+    <parent link="${prefix}_shoulder_rotate" />
+    <child link="${prefix}_elbow" />
     <axis xyz="0 1 0" />
-    <limit effort="1000" lower="-1" upper="1" velocity="1000" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_forearm_left_wrist_rotate_joint" type="revolute">
+  <joint name="${prefix}_forearm_${prefix}_wrist_rotate_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0.042 0 0" />
-    <parent link="left_elbow" />
-    <child link="left_wrist_rotate" />
+    <parent link="${prefix}_elbow" />
+    <child link="${prefix}_wrist_rotate" />
     <axis xyz="1 0 0" />
-    <limit effort="1000" lower="-1.570796" upper="1.570796" velocity="1000" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_rotate_left_wrist_pan_joint" type="revolute">
+  <joint name="${prefix}_wrist_rotate_${prefix}_wrist_pan_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0.034 0 0" />
-    <parent link="left_wrist_rotate" />
-    <child link="left_wrist_pan" />
+    <parent link="${prefix}_wrist_rotate" />
+    <child link="${prefix}_wrist_pan" />
     <axis xyz="0 0 1" />
-    <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_pan_left_wrist_tilt_joint" type="revolute">
+  <joint name="${prefix}_wrist_pan_${prefix}_wrist_tilt_joint" type="revolute">
     <origin rpy="1.57 0 0" xyz="0.036 0 0" />
-    <parent link="left_wrist_pan" />
-    <child link="left_wrist_tilt" />
+    <parent link="${prefix}_wrist_pan" />
+    <child link="${prefix}_wrist_tilt" />
     <axis xyz="0 0 -1" />
-    <limit effort="1000" lower="-0.785398" upper="0.785398" velocity="1000" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
-  <joint name="left_wrist_tilt_left_hand_joint" type="fixed">
+  <joint name="${prefix}_wrist_tilt_${prefix}_hand_joint" type="fixed">
     <origin xyz="0.012 0 0" />
-    <parent link="left_wrist_tilt" />
-    <child link="left_hand" />
+    <parent link="${prefix}_wrist_tilt" />
+    <child link="${prefix}_hand" />
   </joint> 
-  
-  </robot>
+</xacro:macro>
+
+<xacro:arm prefix="left" reflect="1"/>  
+<xacro:arm prefix="right" reflect="-1"/>  
+
+</robot>
 
 
