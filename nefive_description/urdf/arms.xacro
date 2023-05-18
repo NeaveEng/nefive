@@ -113,7 +113,7 @@
   </link>
 
   <joint name="arms_${prefix}_arm" type="fixed">
-    <origin rpy="0 0 0" xyz="${reflect * -0.1} 0 0" />
+    <origin rpy="0 0 0" xyz="${reflect * -0.075} 0 0" />
     <parent link="arms" />
     <child link="${prefix}_arm" />
   </joint>

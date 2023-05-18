@@ -3,7 +3,7 @@
   <link name="base_link" />
   <link name="shoulder_centre" />
 
-  <joint name="shoulder_centre_left_arm_joint" type="fixed">
+  <joint name="shoulder_centre_arms_joint" type="fixed">
     <origin xyz="0 0 0" />
     <parent link="shoulder_centre" />
     <child link="arms" />
