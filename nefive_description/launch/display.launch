@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="model" default="$(find nefive_description)/urdf/nefive-simplified.urdf.xacro"/>
+  <arg name="model" default="$(find nefive_description)/urdf/nefive.urdf.xacro"/>
   <arg name="gui" default="true" />
   <arg name="rvizconfig" default="$(find nefive_description)/rviz/urdf.rviz" />
 
