@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: nefive_description
+    relative_path: urdf/nefive.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/nefive.srdf
+  CONFIG:
+    author_name: Keegan Neave
+    author_email: keegan@neave-eng.com
+    generated_timestamp: 1684417060

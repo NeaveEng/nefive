@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="nefive">
+    <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
+    <group name="left_arm">
+        <chain base_link="left_arm" tip_link="left_hand"/>
+    </group>
+    <group name="right_arm">
+        <chain base_link="right_arm" tip_link="right_hand"/>
+    </group>
+    <group name="head">
+        <chain base_link="head_pan" tip_link="head"/>
+    </group>
+    <group name="arms">
+        <group name="left_arm"/>
+        <group name="right_arm"/>
+    </group>
+    <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
+    <group_state name="default" group="head">
+        <joint name="head_pan_head_tilt_joint" value="0.0048"/>
+    </group_state>
+    <group_state name="default" group="arms">
+        <joint name="left_arm_left_shoulder_flappy_joint" value="0"/>
+        <joint name="left_forearm_left_wrist_rotate_joint" value="0"/>
+        <joint name="left_shoulder_flappy_left_shoulder_foreaft_joint" value="0"/>
+        <joint name="left_shoulder_foreaft_left_shoulder_rotate_joint" value="0"/>
+        <joint name="left_shoulder_rotate_left_elbow_joint" value="0"/>
+        <joint name="left_wrist_pan_left_wrist_tilt_joint" value="0"/>
+        <joint name="left_wrist_rotate_left_wrist_pan_joint" value="0"/>
+        <joint name="right_arm_right_shoulder_flappy_joint" value="0"/>
+        <joint name="right_forearm_right_wrist_rotate_joint" value="0"/>
+        <joint name="right_shoulder_flappy_right_shoulder_foreaft_joint" value="0"/>
+        <joint name="right_shoulder_foreaft_right_shoulder_rotate_joint" value="0"/>
+        <joint name="right_shoulder_rotate_right_elbow_joint" value="0"/>
+        <joint name="right_wrist_pan_right_wrist_tilt_joint" value="0"/>
+        <joint name="right_wrist_rotate_right_wrist_pan_joint" value="0"/>
+    </group_state>
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="left_gripper" parent_link="left_hand" group="left_arm" parent_group="left_arm"/>
+    <end_effector name="right_gripper" parent_link="right_hand" group="right_arm" parent_group="right_arm"/>
+    <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
+    <virtual_joint name="virtual_joint" type="fixed" parent_frame="virtual_joint_frame" child_link="base_link"/>
+</robot>

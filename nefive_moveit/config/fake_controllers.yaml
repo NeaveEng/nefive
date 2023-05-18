@@ -1,0 +1,47 @@
+controller_list:
+  - name: fake_left_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - left_arm_left_shoulder_flappy_joint
+      - left_shoulder_flappy_left_shoulder_foreaft_joint
+      - left_shoulder_foreaft_left_shoulder_rotate_joint
+      - left_shoulder_rotate_left_elbow_joint
+      - left_forearm_left_wrist_rotate_joint
+      - left_wrist_rotate_left_wrist_pan_joint
+      - left_wrist_pan_left_wrist_tilt_joint
+  - name: fake_right_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - right_arm_right_shoulder_flappy_joint
+      - right_shoulder_flappy_right_shoulder_foreaft_joint
+      - right_shoulder_foreaft_right_shoulder_rotate_joint
+      - right_shoulder_rotate_right_elbow_joint
+      - right_forearm_right_wrist_rotate_joint
+      - right_wrist_rotate_right_wrist_pan_joint
+      - right_wrist_pan_right_wrist_tilt_joint
+  - name: fake_head_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - head_pan_head_tilt_joint
+  - name: fake_arms_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - left_arm_left_shoulder_flappy_joint
+      - left_shoulder_flappy_left_shoulder_foreaft_joint
+      - left_shoulder_foreaft_left_shoulder_rotate_joint
+      - left_shoulder_rotate_left_elbow_joint
+      - left_forearm_left_wrist_rotate_joint
+      - left_wrist_rotate_left_wrist_pan_joint
+      - left_wrist_pan_left_wrist_tilt_joint
+      - right_arm_right_shoulder_flappy_joint
+      - right_shoulder_flappy_right_shoulder_foreaft_joint
+      - right_shoulder_foreaft_right_shoulder_rotate_joint
+      - right_shoulder_rotate_right_elbow_joint
+      - right_forearm_right_wrist_rotate_joint
+      - right_wrist_rotate_right_wrist_pan_joint
+      - right_wrist_pan_right_wrist_tilt_joint
+initial:  # Define initial robot poses per group
+  - group: head
+    pose: default
+  - group: arms
+    pose: default

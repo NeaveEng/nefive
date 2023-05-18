@@ -1,0 +1,190 @@
+left_arm_controller:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - left_arm_left_shoulder_flappy_joint
+    - left_shoulder_flappy_left_shoulder_foreaft_joint
+    - left_shoulder_foreaft_left_shoulder_rotate_joint
+    - left_shoulder_rotate_left_elbow_joint
+    - left_forearm_left_wrist_rotate_joint
+    - left_wrist_rotate_left_wrist_pan_joint
+    - left_wrist_pan_left_wrist_tilt_joint
+  gains:
+    left_arm_left_shoulder_flappy_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_shoulder_flappy_left_shoulder_foreaft_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_shoulder_foreaft_left_shoulder_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_shoulder_rotate_left_elbow_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_forearm_left_wrist_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_wrist_rotate_left_wrist_pan_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_wrist_pan_left_wrist_tilt_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+right_arm_controller:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - right_arm_right_shoulder_flappy_joint
+    - right_shoulder_flappy_right_shoulder_foreaft_joint
+    - right_shoulder_foreaft_right_shoulder_rotate_joint
+    - right_shoulder_rotate_right_elbow_joint
+    - right_forearm_right_wrist_rotate_joint
+    - right_wrist_rotate_right_wrist_pan_joint
+    - right_wrist_pan_right_wrist_tilt_joint
+  gains:
+    right_arm_right_shoulder_flappy_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_shoulder_flappy_right_shoulder_foreaft_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_shoulder_foreaft_right_shoulder_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_shoulder_rotate_right_elbow_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_forearm_right_wrist_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_wrist_rotate_right_wrist_pan_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_wrist_pan_right_wrist_tilt_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+head_controller:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - head_pan_head_tilt_joint
+  gains:
+    head_pan_head_tilt_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+arms_controller:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - left_arm_left_shoulder_flappy_joint
+    - left_shoulder_flappy_left_shoulder_foreaft_joint
+    - left_shoulder_foreaft_left_shoulder_rotate_joint
+    - left_shoulder_rotate_left_elbow_joint
+    - left_forearm_left_wrist_rotate_joint
+    - left_wrist_rotate_left_wrist_pan_joint
+    - left_wrist_pan_left_wrist_tilt_joint
+    - right_arm_right_shoulder_flappy_joint
+    - right_shoulder_flappy_right_shoulder_foreaft_joint
+    - right_shoulder_foreaft_right_shoulder_rotate_joint
+    - right_shoulder_rotate_right_elbow_joint
+    - right_forearm_right_wrist_rotate_joint
+    - right_wrist_rotate_right_wrist_pan_joint
+    - right_wrist_pan_right_wrist_tilt_joint
+  gains:
+    left_arm_left_shoulder_flappy_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_shoulder_flappy_left_shoulder_foreaft_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_shoulder_foreaft_left_shoulder_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_shoulder_rotate_left_elbow_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_forearm_left_wrist_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_wrist_rotate_left_wrist_pan_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    left_wrist_pan_left_wrist_tilt_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_arm_right_shoulder_flappy_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_shoulder_flappy_right_shoulder_foreaft_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_shoulder_foreaft_right_shoulder_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_shoulder_rotate_right_elbow_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_forearm_right_wrist_rotate_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_wrist_rotate_right_wrist_pan_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_wrist_pan_right_wrist_tilt_joint:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
