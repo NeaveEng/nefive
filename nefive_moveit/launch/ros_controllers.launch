@@ -6,6 +6,6 @@
 
   <!-- Load the controllers -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="left_arm_controller right_arm_controller head_controller arms_controller "/>
+    output="screen" args="head_controller left_arm_controller right_arm_controller arms_controller servos_controller "/>
 
 </launch>
