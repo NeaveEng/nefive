@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Keegan Neave
     author_email: keegan@neave-eng.com
-    generated_timestamp: 1684706097
+    generated_timestamp: 1684706572

@@ -153,6 +153,8 @@ head:
     - LazyPRMstar
     - SPARS
     - SPARStwo
+  projection_evaluator: joints(chest_box_head_pan_joint,head_pan_head_tilt_joint)
+  longest_valid_segment_fraction: 0.005
 left_arm:
   planner_configs:
     - AnytimePathShortening
