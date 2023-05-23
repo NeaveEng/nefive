@@ -98,8 +98,8 @@ class dynamixel_utils:
 
             # print("[ID:%03d] reboot Succeeded\n" % servo_id)
         
-        # Sleep for 0.1 second to let the port open
-        time.sleep(0.1)
+        # Sleep for 1 second to let the port open
+        time.sleep(1)
             
     # This is valid for servos with 4096 / rev encoders
     def positionToSigned(self, position):
@@ -300,7 +300,7 @@ class dynamixel_utils:
 
 
     def setAngle(self, servo_id, angle):
-        position = angleToPosition(angle)
+        position = self.angleToPosition(angle)
         # print(position)
 
         dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(
@@ -333,24 +333,24 @@ class dynamixel_utils:
 
 
     # Disable all LEDs and servos
-    def disableAllServos():
+    def disableAllServos(self):
         for servo_name, servo_id in servos.items():
-            setServoTorque(servo_id, 0)
-            setLED(servo_id, 0)
+            self.setServoTorque(servo_id, self.TORQUE_DISABLE)
+            self.setLED(servo_id, self.LED_DISABLE)
 
 
-    def enableAllServos():
+    def enableAllServos(self):
         for servo_name, servo_id in servos.items():
-            setServoTorque(servo_id, 1)
-            setLED(servo_id, 1)
+            self.setServoTorque(servo_id, self.TORQUE_ENABLE)
+            self.setLED(servo_id, self.LED_ENABLE)
 
 
-    def lerp(start, end, ratio):
+    def lerp(self, start, end, ratio):
         return round((ratio * end) + ((1 - ratio) * start), 1)
 
 
-    def lerpToAngles(angles, lerp_time):
-        start_angles = readAllAngles()
+    def lerpToAngles(self, angles, lerp_time):
+        start_angles = self.readAllAngles()
         interval = lerp_time / 100
         print(f"Lerp interval: {interval}")
         for i in range(100):

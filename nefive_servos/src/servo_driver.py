@@ -56,4 +56,7 @@ from servo_utils import dynamixel_utils
 #     return int.from_bytes(data_array, "little", signed=True)
 
 servos = dynamixel_utils('/dev/ttyUSB0', 1000000)
+servos.disableAllServos()
+print(servos.pingServos())
+print(servos.readAllTemperatures())
 print(servos.readAllPositions())
