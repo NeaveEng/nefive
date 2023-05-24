@@ -33,7 +33,7 @@
 # *******************************************************************************
 
 import os, ctypes
-from jointlist import servos
+from jointlist import servo_details
 from wake_up import wakeup_angles, head_stretching, arms_stretching
 import time
 from datetime import datetime
@@ -57,6 +57,8 @@ class dynamixel_utils:
     ADDR_PID_POSITION_D         = 84
     ADDR_GOAL_CURRENT           = 102
     ADDR_GOAL_POSITION          = 116
+    ADDR_PRESENT_CURRENT        = 126
+    ADDR_PRESENT_VELOCITY       = 128
     ADDR_PRESENT_POSITION       = 132
     ADDR_PRESENT_TEMPERATURE    = 146
     PROTOCOL_VERSION            = 2.0
@@ -86,7 +88,7 @@ class dynamixel_utils:
             print(f"Failed to set the baudrate to {baud}")
             
         error_states = self.readAllHardwareStatus()
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             if not error_states[servo_id] == 0:
                 print(f"[{servo_id}]: {error_states[servo_id]}")
 
@@ -98,11 +100,11 @@ class dynamixel_utils:
 
             # print("[ID:%03d] reboot Succeeded\n" % servo_id)
         
-        # Sleep for 1 second to let the port open
-        time.sleep(1)
+        # Sleep for 0.1 second to let the port open
+        time.sleep(0.1)
             
-    # This is valid for servos with 4096 / rev encoders
-    def positionToSigned(self, position):
+    # This is valid for four bit two's compliment values
+    def fourBitToSigned(self, position):
         if position > 2147483647:
             position = position - 4294967296
 
@@ -111,7 +113,7 @@ class dynamixel_utils:
 
     def setAllPositions(self, positions):
         groupSyncWrite = GroupSyncWrite(self.portHandler, self.packetHandler, self.ADDR_GOAL_POSITION, 4)
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             # print(f"setting {servo_id} to {positions[servo_id]}")
             position_array = positions[servo_id].to_bytes(4, "little", signed=True)
             groupSyncWrite.addParam(servo_id, position_array)
@@ -126,7 +128,7 @@ class dynamixel_utils:
 
     def setAllAngles(self, angles):
         positions = {}
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             positions[servo_id] = angleToPosition(angles[servo_id])
 
         self.setAllPositions(positions)
@@ -138,34 +140,97 @@ class dynamixel_utils:
         if positions == None:
             return None
         
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             angles[servo_id] = self.positionToAngle(positions[servo_id])
         return angles
     
+    
+    def readAllRadians(self):
+        radians = {}
+        positions = self.readAllPositions()
+        if positions == None:
+            return None
+        
+        for servo_name, servo_id in servo_details.items():
+            radians[servo_id] = self.positionToRadian(positions[servo_id])
+        return radians
+    
 
     def readAllPositions(self):        
-        print(self.ADDR_PRESENT_POSITION)
         groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_POSITION, 4)
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             dxl_addparam_result = groupSyncRead.addParam(servo_id)
-            # if dxl_addparam_result != True:
-            print(f"add_param: {dxl_addparam_result}")
+            if dxl_addparam_result != True:
+                print(f"add_param: {dxl_addparam_result}")
 
         dxl_comm_result = groupSyncRead.txRxPacket()
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
 
         present_position = {}
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_POSITION, 4)
             if dxl_getdata_result != True:
                 print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
                 # return None
 
             position = groupSyncRead.getData(servo_id, self.ADDR_PRESENT_POSITION, 4)
-            present_position[servo_id] = self.positionToSigned(position)
+            present_position[servo_id] = self.fourBitToSigned(position)
 
         return present_position
+
+
+    def readAllCurrent(self):        
+        groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_CURRENT, 2)
+        for servo_name, servo_id in servo_details.items():
+            dxl_addparam_result = groupSyncRead.addParam(servo_id)
+            if dxl_addparam_result != True:
+                print(f"add_param: {dxl_addparam_result}")
+
+        dxl_comm_result = groupSyncRead.txRxPacket()
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+
+        present_current = {}
+        for servo_name, servo_id in servo_details.items():
+            dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_CURRENT, 2)
+            if dxl_getdata_result != True:
+                print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
+                # return None
+
+            current = groupSyncRead.getData(servo_id, self.ADDR_PRESENT_CURRENT, 2)
+            present_current[servo_id] = current
+
+        return present_current
+    
+
+    def readAllVelocities(self):        
+        groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_VELOCITY, 4)
+        for servo_name, servo_id in servo_details.items():
+            dxl_addparam_result = groupSyncRead.addParam(servo_id)
+            if dxl_addparam_result != True:
+                print(f"add_param: {dxl_addparam_result}")
+
+        dxl_comm_result = groupSyncRead.txRxPacket()
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+
+        present_velocity = {}
+        for servo_name, servo_id in servo_details.items():
+            dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_VELOCITY, 4)
+            if dxl_getdata_result != True:
+                print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
+                # return None
+
+            servo_velocity = groupSyncRead.getData(servo_id, self.ADDR_PRESENT_VELOCITY, 4)
+            servo_velocity = self.fourBitToSigned(servo_velocity)
+
+            # units for velocity is 0.229 / minute and 1RPM is 0.10472 radians per second
+            # optimising 0.229 * 0.10471 to 0.02398088
+            velocity = servo_velocity * 0.02398088
+    
+            present_velocity[servo_id] = velocity
+        return present_velocity
 
 
     def pingServos(self):
@@ -248,7 +313,7 @@ class dynamixel_utils:
 
     def readAllTemperatures(self):
         groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_TEMPERATURE, 1)
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             dxl_addparam_result = groupSyncRead.addParam(servo_id)
 
         dxl_comm_result = groupSyncRead.txRxPacket()
@@ -256,7 +321,7 @@ class dynamixel_utils:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
 
         present_temperature = {}
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_TEMPERATURE, 1)
             if dxl_getdata_result != True:
                 print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
@@ -268,7 +333,7 @@ class dynamixel_utils:
 
     def readAllHardwareStatus(self):
         groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_ERROR_STATUS, 1)
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             dxl_addparam_result = groupSyncRead.addParam(servo_id)
 
         dxl_comm_result = groupSyncRead.txRxPacket()
@@ -276,7 +341,7 @@ class dynamixel_utils:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
 
         present_state = {}
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_ERROR_STATUS, 1)
             if dxl_getdata_result != True:
                 print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
@@ -287,12 +352,22 @@ class dynamixel_utils:
         return present_state
 
 
-    def positionToAngle(position):
-        current_angle = position * 0.088
+    def positionToAngle(self, position):
+        # -2048 normalises around the middle position of the servo
+        # 0.088 is 4096 (encoder resolution) / 360 ie. 1 tick is 0.088 degress
+        current_angle = (position - 2048) * 0.088
         return round(current_angle, 2)
 
 
-    def angleToPosition(angle):
+    def positionToRadian(self, position):
+        # -2048 normalises around the middle position of the servo
+        # 0.088 is 4096 (encoder resolution) / 360 ie. 1 tick is 0.088 degress
+        # 0.001535 is 1 tick in radians
+        current_angle = (position - 2048) * 0.001535 
+        return round(current_angle, 4)
+
+
+    def angleToPosition(self, angle):
         # convert angle to position value, note this is float to int
         position = int(angle / 0.088)
         # print(f"{angle} angle converted to position {position}")
@@ -334,13 +409,13 @@ class dynamixel_utils:
 
     # Disable all LEDs and servos
     def disableAllServos(self):
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             self.setServoTorque(servo_id, self.TORQUE_DISABLE)
             self.setLED(servo_id, self.LED_DISABLE)
 
 
     def enableAllServos(self):
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             self.setServoTorque(servo_id, self.TORQUE_ENABLE)
             self.setLED(servo_id, self.LED_ENABLE)
 
@@ -355,7 +430,7 @@ class dynamixel_utils:
         print(f"Lerp interval: {interval}")
         for i in range(100):
             new_angles = {}
-            for servo_name, servo_id in servos.items():
+            for servo_name, servo_id in servo_details.items():
                 value = lerp(start_angles[servo_id], angles[servo_id], i / 100)
                 if value == None:
                     print(f"Unable to set position for {servo_name}")
@@ -372,7 +447,7 @@ class dynamixel_utils:
         print(f"Lerp interval: {interval}")
         for i in range(100):
             new_positions = {}
-            for servo_name, servo_id in servos.items():
+            for servo_name, servo_id in servo_details.items():
                 value = int(lerp(start_positions[servo_id], positions[servo_id], i / 100))
                 if value == None:
                     print(f"Unable to set position for {servo_name}")
@@ -390,7 +465,7 @@ class dynamixel_utils:
 
         for i in range(100):
             angles = {}
-            for servo_name, servo_id in servos.items():
+            for servo_name, servo_id in servo_details.items():
                 value = lerp(start_angles[servo_id], home_positions[servo_id], i / 100)
                 if value == None:
                     print(f"Unable to set position for {servo_name}")
@@ -406,7 +481,7 @@ class dynamixel_utils:
         home_values = {}
 
         # Iterate through all servos, setting home location
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             print(f"[{servo_name}] please move to home position and press any key to continue or ESC to quit")
             if getch() == chr(0x1b):
                 break
@@ -451,13 +526,13 @@ class dynamixel_utils:
         min_value = 0
         max_value = 1
 
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             # each tuple is {min_value, max_value}
             servo_limits[servo_id] = [ 100000, -100000 ]
 
         while 1:
             current_positions = readAllPositions()
-            for servo_name, servo_id in servos.items():
+            for servo_name, servo_id in servo_details.items():
                 if current_positions[servo_id] >= servo_limits[servo_id][max_value]:
                     servo_limits[servo_id][max_value] = current_positions[servo_id]
                     
@@ -469,7 +544,7 @@ class dynamixel_utils:
     
     # set all servos to current-position mode
     def setOperatingModes(value):
-        for servo_name, servo_id in servos.items():
+        for servo_name, servo_id in servo_details.items():
             setServoTorque(servo_id, 0)
             setOperatingMode(servo_id, value)
 
