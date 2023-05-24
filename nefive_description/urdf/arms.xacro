@@ -122,7 +122,7 @@
     <origin rpy="0 0 0" xyz="0 0 0" />
     <parent link="${prefix}_arm" />
     <child link="${prefix}_shoulder_flappy" />
-    <axis xyz="0 ${reflect * 1} 0" />
+    <axis xyz="0 -1 0" />
     <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
@@ -130,7 +130,7 @@
     <origin rpy="0 0 0" xyz="${reflect * -0.025} 0 0" />
     <parent link="${prefix}_shoulder_flappy" />
     <child link="${prefix}_shoulder_foreaft" />
-    <axis xyz="1 0 0" />
+    <axis xyz="${reflect} 0 0" />
     <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
@@ -138,7 +138,7 @@
     <origin rpy="0 0 -${pi/2}" xyz="0 0 -0.067" />
     <parent link="${prefix}_shoulder_foreaft" />
     <child link="${prefix}_shoulder_rotate" />
-    <axis xyz="0 0 ${reflect * 1}" />
+    <axis xyz="0 0 -1" />
     <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
@@ -146,7 +146,7 @@
     <origin rpy="0 ${pi} 0" xyz="0 0 0" />
     <parent link="${prefix}_shoulder_rotate" />
     <child link="${prefix}_elbow" />
-    <axis xyz="0 1 0" />
+    <axis xyz="0 ${reflect} 0" />
     <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
@@ -170,7 +170,7 @@
     <origin rpy="1.57 0 0" xyz="0.036 0 0" />
     <parent link="${prefix}_wrist_pan" />
     <child link="${prefix}_wrist_tilt" />
-    <axis xyz="0 0 -1" />
+    <axis xyz="0 0 ${reflect}" />
     <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint>
 
