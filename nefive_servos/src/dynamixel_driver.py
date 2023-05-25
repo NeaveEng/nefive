@@ -11,7 +11,7 @@ if __name__ == '__main__':
         pub = rospy.Publisher('joint_states', JointState, queue_size=10)
         rospy.init_node('dynamixel_node', anonymous=True)
 
-        servos = dynamixel_utils('/dev/ttyUSB0', 1000000)
+        servos = dynamixel_utils('/dev/ttyUSB0', 4000000)
         servos.disableAllServos()
 
         # Create the joint state msg and populate with default values
@@ -27,21 +27,20 @@ if __name__ == '__main__':
             msg.velocity = []
             msg.effort = []
 
-            positions = servos.readAllRadians()
+            radians = servos.readAllRadians()
+            velocities = servos.readAllVelocities()
+            efforts = servos.readAllEfforts()
 
             # Update for gearing, flappy is 24/20 (0.83333) and foreaft is 28/20 (0.71429)
-            positions[100] = positions[100] * 0.83333
-            positions[101] = positions[101] * 0.71429
-            positions[108] = positions[108] * 0.83333
-            positions[109] = positions[109] * 0.71429
-
-            velocities = servos.readAllVelocities()
-            currents = servos.readAllCurrent()
+            radians[100] = radians[100] * 0.83333
+            radians[101] = radians[101] * 0.71429
+            radians[108] = radians[108] * 0.83333
+            radians[109] = radians[109] * 0.71429
 
             for joint_name, servo_id in servo_details.items():
-                msg.position.append(positions[servo_id])
+                msg.position.append(radians[servo_id])
                 msg.velocity.append(velocities[servo_id])
-                msg.effort.append(currents[servo_id] * servo_torque_constants[servo_id])            
+                msg.effort.append(efforts[servo_id])            
             
             # rospy.loginfo(msg)
             pub.publish(msg)

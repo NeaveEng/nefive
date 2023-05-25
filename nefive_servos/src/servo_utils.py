@@ -33,7 +33,7 @@
 # *******************************************************************************
 
 import os, ctypes
-from jointlist import servo_details
+from jointlist import servo_details, servo_torque_constants
 from wake_up import wakeup_angles, head_stretching, arms_stretching
 import time
 from datetime import datetime
@@ -155,74 +155,102 @@ class dynamixel_utils:
             radians[servo_id] = self.positionToRadian(positions[servo_id])
         return radians
     
+    groupSyncReadPosition = None
+    def readAllPositions(self): 
+        if self.groupSyncReadPosition == None:       
+            self.groupSyncReadPosition = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_POSITION, 4)
+            for servo_name, servo_id in servo_details.items():
+                dxl_addparam_result = self.groupSyncReadPosition.addParam(servo_id)
+                if dxl_addparam_result != True:
+                    print(f"add_param: {dxl_addparam_result}")
 
-    def readAllPositions(self):        
-        groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_POSITION, 4)
-        for servo_name, servo_id in servo_details.items():
-            dxl_addparam_result = groupSyncRead.addParam(servo_id)
-            if dxl_addparam_result != True:
-                print(f"add_param: {dxl_addparam_result}")
-
-        dxl_comm_result = groupSyncRead.txRxPacket()
+        dxl_comm_result = self.groupSyncReadPosition.txRxPacket()
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
 
         present_position = {}
         for servo_name, servo_id in servo_details.items():
-            dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_POSITION, 4)
+            dxl_getdata_result = self.groupSyncReadPosition.isAvailable(servo_id, self.ADDR_PRESENT_POSITION, 4)
             if dxl_getdata_result != True:
                 print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
                 # return None
 
-            position = groupSyncRead.getData(servo_id, self.ADDR_PRESENT_POSITION, 4)
+            position = self.groupSyncReadPosition.getData(servo_id, self.ADDR_PRESENT_POSITION, 4)
             present_position[servo_id] = self.fourBitToSigned(position)
 
         return present_position
 
+    groupSyncReadCurrent = None
+    def readAllCurrent(self):  
+        if self.groupSyncReadCurrent == None:      
+            self.groupSyncReadCurrent = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_CURRENT, 2)
+            for servo_name, servo_id in servo_details.items():
+                dxl_addparam_result = self.groupSyncReadCurrent.addParam(servo_id)
+                if dxl_addparam_result != True:
+                    print(f"add_param: {dxl_addparam_result}")
 
-    def readAllCurrent(self):        
-        groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_CURRENT, 2)
-        for servo_name, servo_id in servo_details.items():
-            dxl_addparam_result = groupSyncRead.addParam(servo_id)
-            if dxl_addparam_result != True:
-                print(f"add_param: {dxl_addparam_result}")
-
-        dxl_comm_result = groupSyncRead.txRxPacket()
+        dxl_comm_result = self.groupSyncReadCurrent.txRxPacket()
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
 
         present_current = {}
         for servo_name, servo_id in servo_details.items():
-            dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_CURRENT, 2)
+            dxl_getdata_result = self.groupSyncReadCurrent.isAvailable(servo_id, self.ADDR_PRESENT_CURRENT, 2)
             if dxl_getdata_result != True:
                 print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
                 # return None
 
-            current = groupSyncRead.getData(servo_id, self.ADDR_PRESENT_CURRENT, 2)
-            present_current[servo_id] = current
+            current = self.groupSyncReadCurrent.getData(servo_id, self.ADDR_PRESENT_CURRENT, 2)
+            present_current[servo_id] = current / 1000
 
         return present_current
     
+    def readAllEfforts(self):  
+        if self.groupSyncReadCurrent == None:      
+            self.groupSyncReadCurrent = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_CURRENT, 2)
+            for servo_name, servo_id in servo_details.items():
+                dxl_addparam_result = self.groupSyncReadCurrent.addParam(servo_id)
+                if dxl_addparam_result != True:
+                    print(f"add_param: {dxl_addparam_result}")
 
-    def readAllVelocities(self):        
-        groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_VELOCITY, 4)
+        dxl_comm_result = self.groupSyncReadCurrent.txRxPacket()
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+
+        present_effort = {}
         for servo_name, servo_id in servo_details.items():
-            dxl_addparam_result = groupSyncRead.addParam(servo_id)
-            if dxl_addparam_result != True:
-                print(f"add_param: {dxl_addparam_result}")
+            dxl_getdata_result = self.groupSyncReadCurrent.isAvailable(servo_id, self.ADDR_PRESENT_CURRENT, 2)
+            if dxl_getdata_result != True:
+                print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
+                # return None
 
-        dxl_comm_result = groupSyncRead.txRxPacket()
+            current = self.groupSyncReadCurrent.getData(servo_id, self.ADDR_PRESENT_CURRENT, 2)
+            present_effort[servo_id] = (current / 1000) * servo_torque_constants[servo_id]
+
+        return present_effort
+                 
+                
+    groupSyncReadVelocities = None
+    def readAllVelocities(self):      
+        if self.groupSyncReadVelocities == None:  
+            self.groupSyncReadVelocities = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_PRESENT_VELOCITY, 4)
+            for servo_name, servo_id in servo_details.items():
+                dxl_addparam_result = self.groupSyncReadVelocities.addParam(servo_id)
+                if dxl_addparam_result != True:
+                    print(f"add_param: {dxl_addparam_result}")
+
+        dxl_comm_result = self.groupSyncReadVelocities.txRxPacket()
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
 
         present_velocity = {}
         for servo_name, servo_id in servo_details.items():
-            dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_PRESENT_VELOCITY, 4)
+            dxl_getdata_result = self.groupSyncReadVelocities.isAvailable(servo_id, self.ADDR_PRESENT_VELOCITY, 4)
             if dxl_getdata_result != True:
                 print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
                 # return None
 
-            servo_velocity = groupSyncRead.getData(servo_id, self.ADDR_PRESENT_VELOCITY, 4)
+            servo_velocity = self.groupSyncReadVelocities.getData(servo_id, self.ADDR_PRESENT_VELOCITY, 4)
             servo_velocity = self.fourBitToSigned(servo_velocity)
 
             # units for velocity is 0.229 / minute and 1RPM is 0.10472 radians per second
@@ -232,7 +260,7 @@ class dynamixel_utils:
             present_velocity[servo_id] = velocity
         return present_velocity
 
-
+  
     def pingServos(self):
         # Try to broadcast ping the Dynamixel
         dxl_data_list, dxl_comm_result = self.packetHandler.broadcastPing(self.portHandler)
