@@ -4,15 +4,24 @@ import rospy
 from sensor_msgs.msg import JointState
 from servo_utils import dynamixel_utils
 from jointlist import servo_details, servo_torque_constants
+import signal
+import sys
 
 
 if __name__ == '__main__':
+    def handler(signum, frame):
+        print("ctrl-c pressed, exiting")
+        servos.disableAllServos()
+        sys.exit()
+
     try:
         pub = rospy.Publisher('joint_states', JointState, queue_size=10)
         rospy.init_node('dynamixel_node', anonymous=True)
 
         servos = dynamixel_utils('/dev/ttyUSB0', 4000000)
         servos.disableAllServos()
+
+        signal.signal(signal.SIGINT, handler)
 
         # Create the joint state msg and populate with default values
         msg = JointState()

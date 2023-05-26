@@ -34,7 +34,6 @@
 
 import os, ctypes
 from jointlist import servo_details, servo_torque_constants
-from wake_up import wakeup_angles, head_stretching, arms_stretching
 import time
 from datetime import datetime
 import signal
@@ -614,32 +613,3 @@ class dynamixel_utils:
         disableAllServos()
         # Close port
 
-        
-    def wakeUpRoutine():
-        # first get positions of all servos
-        start_positions = readAllPositions()
-        
-        # use these to fill in the gaps of the head movements
-        start_positions[116] = head_stretching[0][116]
-        start_positions[117] = head_stretching[0][117]
-        start_positions[118] = head_stretching[0][118]
-        lerpToPositions(start_positions, 1)
-        
-        for i in range(1, 7):        
-            start_positions[116] = head_stretching[i][116]
-            start_positions[117] = head_stretching[i][117]
-            start_positions[118] = head_stretching[i][118]
-            lerpToPositions(start_positions, 0.5)
-        
-        lerpToPositions(arms_stretching[0],1)
-        
-        for i in range(1, 6):
-            lerpToPositions(arms_stretching[i], 0.75)
-
-
-    # setOperatingModes(3)
-    # wakeUpRoutine()
-
-    # getch()
-    # disableAllServos()
-    # self.portHandler.closePort()
