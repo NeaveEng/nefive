@@ -18,7 +18,7 @@ if __name__ == '__main__':
         pub = rospy.Publisher('joint_states', JointState, queue_size=10)
         rospy.init_node('dynamixel_node', anonymous=True)
 
-        servos = dynamixel_utils('/dev/ttyUSB0', 4000000)
+        servos = dynamixel_utils('/dev/ttyUSB0', 1000000)
         servos.disableAllServos()
 
         signal.signal(signal.SIGINT, handler)
@@ -28,6 +28,8 @@ if __name__ == '__main__':
         for joint_name, servo_id in servo_details.items():
             msg.name.append(joint_name)
             
+        rate = rospy.Rate(12)
+
         # Loop until disconnected
         while True:
             # Create message
@@ -53,6 +55,7 @@ if __name__ == '__main__':
             
             # rospy.loginfo(msg)
             pub.publish(msg)
+            rate.sleep()
     
 
     except rospy.ROSInterruptException:
