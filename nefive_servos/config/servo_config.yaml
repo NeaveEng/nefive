@@ -1,0 +1,38 @@
+left_arm_left_shoulder_flappy_joint:                  
+  ID: 100
+left_shoulder_flappy_left_shoulder_foreaft_joint:     
+  ID: 101
+left_shoulder_foreaft_left_shoulder_rotate_joint:     
+  ID: 102
+left_shoulder_rotate_left_elbow_joint:                
+  ID: 103
+left_forearm_left_wrist_rotate_joint:                 
+  ID: 104
+left_wrist_rotate_left_wrist_pan_joint:               
+  ID: 105
+left_wrist_pan_left_wrist_tilt_joint:                 
+  ID: 106
+left_hand:                                            
+  ID: 107
+right_arm_right_shoulder_flappy_joint:                
+  ID: 108
+right_shoulder_flappy_right_shoulder_foreaft_joint:   
+  ID: 109
+right_shoulder_foreaft_right_shoulder_rotate_joint:   
+  ID: 110
+right_shoulder_rotate_right_elbow_joint:              
+  ID: 111
+right_forearm_right_wrist_rotate_joint:               
+  ID: 112
+right_wrist_rotate_right_wrist_pan_joint:             
+  ID: 113
+right_wrist_pan_right_wrist_tilt_joint:               
+  ID: 114
+right_hand:                                           
+  ID: 115
+chest_box_head_pan_joint:                             
+  ID: 116
+head_pan_head_tilt_joint:                             
+  ID: 117
+head_tilt_head_roll_joint:                            
+  ID: 118
