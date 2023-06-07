@@ -371,7 +371,7 @@
         <origin rpy="0 0 0" xyz="0 0 0" />
         <parent link="left_arm" />
         <child link="left_shoulder_flappy" />
-        <axis xyz="0 1 0" />
+        <axis xyz="0 -1 0" />
         <limit effort="10" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="1000" />
     </joint>
     <joint name="left_shoulder_flappy_left_shoulder_foreaft_joint" type="revolute">
@@ -385,7 +385,7 @@
         <origin rpy="0 0 -1.5707963267948966" xyz="0 0 -0.067" />
         <parent link="left_shoulder_foreaft" />
         <child link="left_shoulder_rotate" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="10" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="1000" />
     </joint>
     <joint name="left_shoulder_rotate_left_elbow_joint" type="revolute">
@@ -413,7 +413,7 @@
         <origin rpy="1.57 0 0" xyz="0.036 0 0" />
         <parent link="left_wrist_pan" />
         <child link="left_wrist_tilt" />
-        <axis xyz="0 0 -1" />
+        <axis xyz="0 0 1" />
         <limit effort="10" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="1000" />
     </joint>
     <joint name="left_wrist_tilt_left_hand_joint" type="fixed">
@@ -535,7 +535,7 @@
         <origin rpy="0 0 0" xyz="0.025 0 0" />
         <parent link="right_shoulder_flappy" />
         <child link="right_shoulder_foreaft" />
-        <axis xyz="1 0 0" />
+        <axis xyz="-1 0 0" />
         <limit effort="10" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="1000" />
     </joint>
     <joint name="right_shoulder_foreaft_right_shoulder_rotate_joint" type="revolute">
@@ -549,7 +549,7 @@
         <origin rpy="0 3.141592653589793 0" xyz="0 0 0" />
         <parent link="right_shoulder_rotate" />
         <child link="right_elbow" />
-        <axis xyz="0 1 0" />
+        <axis xyz="0 -1 0" />
         <limit effort="10" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="1000" />
     </joint>
     <joint name="right_forearm_right_wrist_rotate_joint" type="revolute">

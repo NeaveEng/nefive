@@ -6,8 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1
+        - /RobotState1/Status1
       Splitter Ratio: 0.5
-    Tree Height: 302
+    Tree Height: 152
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -48,7 +49,7 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        backward_indicator:
+        arms:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -56,15 +57,65 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        forward_indicator:
+        chassis:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
+        chest_box:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        eyes:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head_pan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head_tilt:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         left_arm:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        left_camera_pointcloud_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         left_elbow:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_eye_inner:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_eye_ring:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -74,10 +125,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        left_indicator:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         left_shoulder_flappy:
           Alpha: 1
           Show Axes: false
@@ -108,14 +155,88 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        right_indicator:
+        lower_torso:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
+        rear_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_elbow:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_eye_inner:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_eye_ring:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_flappy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_foreaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wrist_pan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wrist_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wrist_tilt:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         shoulder_centre:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        upper_torso:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -127,19 +248,37 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        backward_indicator:
+        arms:
           Value: true
         base_link:
           Value: true
-        forward_indicator:
+        chassis:
+          Value: true
+        chest_box:
+          Value: true
+        eyes:
+          Value: true
+        front_left_wheel:
+          Value: true
+        front_right_wheel:
+          Value: true
+        head:
+          Value: true
+        head_pan:
+          Value: true
+        head_tilt:
           Value: true
         left_arm:
           Value: true
+        left_camera_pointcloud_frame:
+          Value: true
         left_elbow:
           Value: true
-        left_hand:
+        left_eye_inner:
           Value: true
-        left_indicator:
+        left_eye_ring:
+          Value: true
+        left_hand:
           Value: true
         left_shoulder_flappy:
           Value: true
@@ -153,9 +292,39 @@ Visualization Manager:
           Value: true
         left_wrist_tilt:
           Value: true
-        right_indicator:
+        lower_torso:
+          Value: true
+        rear_left_wheel:
+          Value: true
+        rear_right_wheel:
+          Value: true
+        right_arm:
+          Value: true
+        right_camera:
+          Value: true
+        right_elbow:
+          Value: true
+        right_eye_inner:
+          Value: true
+        right_eye_ring:
+          Value: true
+        right_hand:
+          Value: true
+        right_shoulder_flappy:
+          Value: true
+        right_shoulder_foreaft:
+          Value: true
+        right_shoulder_rotate:
+          Value: true
+        right_wrist_pan:
+          Value: true
+        right_wrist_rotate:
+          Value: true
+        right_wrist_tilt:
           Value: true
         shoulder_centre:
+          Value: true
+        upper_torso:
           Value: true
       Marker Alpha: 1
       Marker Scale: 0.05000000074505806
@@ -165,27 +334,718 @@ Visualization Manager:
       Show Names: true
       Tree:
         base_link:
-          backward_indicator:
-            {}
-          forward_indicator:
-            {}
-          left_indicator:
-            {}
-          right_indicator:
-            {}
-          shoulder_centre:
-            left_arm:
-              left_shoulder_flappy:
-                left_shoulder_foreaft:
-                  left_shoulder_rotate:
-                    left_elbow:
-                      left_wrist_rotate:
-                        left_wrist_pan:
-                          left_wrist_tilt:
-                            left_hand:
-                              {}
+          chassis:
+            front_left_wheel:
+              {}
+            front_right_wheel:
+              {}
+            lower_torso:
+              upper_torso:
+                chest_box:
+                  head_pan:
+                    head_tilt:
+                      head:
+                        eyes:
+                          left_eye_ring:
+                            left_eye_inner:
+                              left_camera_pointcloud_frame:
+                                {}
+                          right_eye_ring:
+                            right_eye_inner:
+                              right_camera:
+                                {}
+                  shoulder_centre:
+                    arms:
+                      left_arm:
+                        left_shoulder_flappy:
+                          left_shoulder_foreaft:
+                            left_shoulder_rotate:
+                              left_elbow:
+                                left_wrist_rotate:
+                                  left_wrist_pan:
+                                    left_wrist_tilt:
+                                      left_hand:
+                                        {}
+                      right_arm:
+                        right_shoulder_flappy:
+                          right_shoulder_foreaft:
+                            right_shoulder_rotate:
+                              right_elbow:
+                                right_wrist_rotate:
+                                  right_wrist_pan:
+                                    right_wrist_tilt:
+                                      right_hand:
+                                        {}
+            rear_left_wheel:
+              {}
+            rear_right_wheel:
+              {}
       Update Interval: 0
       Value: true
+    - Attached Body Color: 150; 50; 150
+      Class: moveit_rviz_plugin/RobotState
+      Collision Enabled: false
+      Enabled: false
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        arms:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        chassis:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        chest_box:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        eyes:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head_pan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head_tilt:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_camera_pointcloud_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_elbow:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_eye_inner:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_eye_ring:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_shoulder_flappy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_shoulder_foreaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_shoulder_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_pan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wrist_tilt:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lower_torso:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_elbow:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_eye_inner:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_eye_ring:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_flappy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_foreaft:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wrist_pan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wrist_rotate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wrist_tilt:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        shoulder_centre:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        upper_torso:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotState
+      Robot Alpha: 1
+      Robot Description: robot_description
+      Robot State Topic: display_robot_state
+      Show All Links: true
+      Show Highlights: true
+      Value: false
+      Visual Enabled: true
+    - Acceleration_Scaling_Factor: 0.1
+      Class: moveit_rviz_plugin/MotionPlanning
+      Enabled: true
+      Move Group Namespace: ""
+      MoveIt_Allow_Approximate_IK: false
+      MoveIt_Allow_External_Program: false
+      MoveIt_Allow_Replanning: false
+      MoveIt_Allow_Sensor_Positioning: false
+      MoveIt_Planning_Attempts: 10
+      MoveIt_Planning_Time: 5
+      MoveIt_Use_Cartesian_Path: false
+      MoveIt_Use_Constraint_Aware_IK: false
+      MoveIt_Workspace:
+        Center:
+          X: 0
+          Y: 0
+          Z: 0
+        Size:
+          X: 2
+          Y: 2
+          Z: 2
+      Name: MotionPlanning
+      Planned Path:
+        Color Enabled: false
+        Interrupt Display: false
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          arms:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          chassis:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          chest_box:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          eyes:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          front_left_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          front_right_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          head:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          head_pan:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          head_tilt:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_arm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_camera_pointcloud_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_eye_inner:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_eye_ring:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_hand:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_shoulder_flappy:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_shoulder_foreaft:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_shoulder_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_wrist_pan:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_wrist_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_wrist_tilt:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          lower_torso:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          rear_left_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          rear_right_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_arm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_camera:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_eye_inner:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_eye_ring:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_hand:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_shoulder_flappy:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_shoulder_foreaft:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_shoulder_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_wrist_pan:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_wrist_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_wrist_tilt:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          shoulder_centre:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          upper_torso:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+        Loop Animation: false
+        Robot Alpha: 0.5
+        Robot Color: 150; 50; 150
+        Show Robot Collision: false
+        Show Robot Visual: true
+        Show Trail: false
+        State Display Time: 3x
+        Trail Step Size: 1
+        Trajectory Topic: move_group/display_planned_path
+        Use Sim Time: false
+      Planning Metrics:
+        Payload: 1
+        Show Joint Torques: false
+        Show Manipulability: false
+        Show Manipulability Index: false
+        Show Weight Limit: false
+        TextHeight: 0.07999999821186066
+      Planning Request:
+        Colliding Link Color: 255; 0; 0
+        Goal State Alpha: 1
+        Goal State Color: 250; 128; 0
+        Interactive Marker Size: 0
+        Joint Violation Color: 255; 0; 255
+        Planning Group: left_arm
+        Query Goal State: true
+        Query Start State: false
+        Show Workspace: false
+        Start State Alpha: 1
+        Start State Color: 0; 255; 0
+      Planning Scene Topic: move_group/monitored_planning_scene
+      Robot Description: robot_description
+      Scene Geometry:
+        Scene Alpha: 0.8999999761581421
+        Scene Color: 50; 230; 50
+        Scene Display Time: 0.009999999776482582
+        Show Scene Geometry: true
+        Voxel Coloring: Z-Axis
+        Voxel Rendering: Occupied Voxels
+      Scene Robot:
+        Attached Body Color: 150; 50; 150
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          arms:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          chassis:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          chest_box:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          eyes:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          front_left_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          front_right_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          head:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          head_pan:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          head_tilt:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_arm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_camera_pointcloud_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_eye_inner:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_eye_ring:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_hand:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_shoulder_flappy:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_shoulder_foreaft:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_shoulder_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_wrist_pan:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_wrist_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_wrist_tilt:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          lower_torso:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          rear_left_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          rear_right_wheel:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_arm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_camera:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_eye_inner:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_eye_ring:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_hand:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_shoulder_flappy:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_shoulder_foreaft:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_shoulder_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_wrist_pan:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_wrist_rotate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_wrist_tilt:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          shoulder_centre:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          upper_torso:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+        Robot Alpha: 1
+        Show Robot Collision: false
+        Show Robot Visual: true
+      Value: true
+      Velocity_Scaling_Factor: 0.1
   Enabled: true
   Global Options:
     Background Color: 199; 199; 199
@@ -199,7 +1059,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.195679172873497
+      Distance: 0.5426338315010071
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -215,19 +1075,23 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4103987216949463
+      Pitch: 0.2553987205028534
       Target Frame: left_shoulder_flappy
-      Yaw: 3.805400848388672
+      Yaw: 5.375401020050049
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 800
+  Height: 1016
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd000000010000000000000156000002cafc0200000002fb000000100044006900730070006c006100790073010000003b000001af000000c700fffffffb0000000a0056006900650077007301000001f000000115000000a000ffffff00000354000002ca00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  MotionPlanning:
+    collapsed: false
+  MotionPlanning - Slider:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000001f60000039afc0200000004fb000000100044006900730070006c006100790073010000003d00000126000000c200fffffffb0000000a005600690065007700730100000167000000bf000000ad00fffffffb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004c00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000022a000001ad000001ad00ffffff000005860000039a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1200
-  X: 212
-  Y: 130
+  Width: 1920
+  X: 0
+  Y: 36
