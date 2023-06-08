@@ -112,6 +112,8 @@
     </visual>
   </link>
 
+  <link name="${prefix}_gripper" />
+
   <joint name="arms_${prefix}_arm" type="fixed">
     <origin rpy="0 0 0" xyz="${reflect * -0.075} 0 0" />
     <parent link="arms" />
@@ -178,6 +180,14 @@
     <origin xyz="0.012 0 0" />
     <parent link="${prefix}_wrist_tilt" />
     <child link="${prefix}_hand" />
+  </joint> 
+
+  <joint name="${prefix}_hand_joint_${prefix}_gripper" type="revolute">
+    <origin xyz="0 0 0" />
+    <parent link="${prefix}_hand" />
+    <child link="${prefix}_gripper" />
+    <axis xyz="0 0 ${reflect}" />
+    <limit effort="10" lower="-${pi/2}" upper="${pi/2}" velocity="1000" />
   </joint> 
 </xacro:macro>
 

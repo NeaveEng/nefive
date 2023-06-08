@@ -17,7 +17,7 @@
       <material name="grey" />
     </visual>
   </link>
-  <link name="head">
+  <link name="head_roll">
     <visual>
       <origin xyz="-0.0039 0 0.0283" />
       <geometry>
@@ -26,6 +26,7 @@
       <material name="grey" />
     </visual>
   </link>
+  <link name="head" />
   <link name="eyes">
     <visual>
       <geometry>
@@ -89,8 +90,15 @@
     <axis xyz="0 -1 0" />
     <limit lower="-0.785398" upper="0.785398" effort="1000" velocity="1000" />
   </joint>
-  <joint name="head_tilt_head_joint" type="fixed">
+  <joint name="head_tilt_head_roll_joint" type="revolute">
+    <origin xyz="0 0 0.035" />
     <parent link="head_tilt" />
+    <child link="head_roll" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-0.785398" upper="0.785398" effort="1000" velocity="1000" />
+  </joint>
+  <joint name="head_roll_head_joint" type="fixed">
+    <parent link="head_roll" />
     <child link="head" />
   </joint>
   <joint name="head_eyes_joint" type="fixed">

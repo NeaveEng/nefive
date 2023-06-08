@@ -3,7 +3,7 @@
   <arg name="dxl_baud_rate"           default="1000000"/>
   <arg name="node_name"               default="nefive"/>
 
-  <arg name="use_moveit"              default="false"/>
+  <arg name="use_moveit"              default="true"/>
   <arg name="use_joint_state"         default="true"/>
   <arg name="use_cmd_vel"             default="false"/>
 

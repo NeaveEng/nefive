@@ -1,38 +1,95 @@
 left_arm_left_shoulder_flappy_joint:                  
   ID: 100
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 left_shoulder_flappy_left_shoulder_foreaft_joint:     
   ID: 101
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 left_shoulder_foreaft_left_shoulder_rotate_joint:     
   ID: 102
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 left_shoulder_rotate_left_elbow_joint:                
   ID: 103
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 left_forearm_left_wrist_rotate_joint:                 
   ID: 104
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 left_wrist_rotate_left_wrist_pan_joint:               
   ID: 105
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 left_wrist_pan_left_wrist_tilt_joint:                 
   ID: 106
-left_hand:                                            
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
+left_hand_joint_left_gripper:                                            
   ID: 107
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_arm_right_shoulder_flappy_joint:                
   ID: 108
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_shoulder_flappy_right_shoulder_foreaft_joint:   
   ID: 109
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_shoulder_foreaft_right_shoulder_rotate_joint:   
   ID: 110
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_shoulder_rotate_right_elbow_joint:              
   ID: 111
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_forearm_right_wrist_rotate_joint:               
   ID: 112
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_wrist_rotate_right_wrist_pan_joint:             
   ID: 113
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 right_wrist_pan_right_wrist_tilt_joint:               
   ID: 114
-right_hand:                                           
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
+right_hand_joint_right_gripper:                                           
   ID: 115
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 chest_box_head_pan_joint:                             
   ID: 116
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 head_pan_head_tilt_joint:                             
   ID: 117
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
 head_tilt_head_roll_joint:                            
   ID: 118
+  Operating_Mode: 3
+  Profile_Acceleration: 0
+  Profile_Velocity: 0
