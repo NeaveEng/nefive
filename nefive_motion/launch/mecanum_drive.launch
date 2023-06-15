@@ -1,0 +1,3 @@
+<launch>
+  <node name="mecanum_motor_node" pkg="nefive_motion" type="mecanum_motor_node.py" />
+</launch>
