@@ -41,8 +41,19 @@ from dynamixel_sdk import *  # Uses Dynamixel SDK library
 
 if os.name == 'nt':
     import msvcrt
+    def getch():
+        return msvcrt.getch().decode()
 else:
-    import sys, select
+    import sys, tty, termios
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    def getch():
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
 
 class dynamixel_utils:
     # Control table address
@@ -128,7 +139,15 @@ class dynamixel_utils:
     def setAllAngles(self, angles):
         positions = {}
         for servo_name, servo_id in servo_details.items():
-            positions[servo_id] = angleToPosition(angles[servo_id])
+            positions[servo_id] = self.angleToPosition(angles[servo_id])
+
+        self.setAllPositions(positions)
+
+
+    def setAllRadians(self, radians):
+        positions = {}
+        for servo_name, servo_id in servo_details.items():
+            positions[servo_id] = self.radianToPosition(radians[servo_id])
 
         self.setAllPositions(positions)
         
@@ -332,8 +351,8 @@ class dynamixel_utils:
         return int.from_bytes(data_array, "little", signed=True)
 
 
-    def getCurrentAngle(servo_id):
-        position_signed = getCurrentPosition(servo_id)
+    def getCurrentAngle(self, servo_id):
+        position_signed = self.getCurrentPosition(servo_id)
         current_angle = position_signed * 0.088
         return round(current_angle, 2)
 
@@ -396,7 +415,17 @@ class dynamixel_utils:
 
     def angleToPosition(self, angle):
         # convert angle to position value, note this is float to int
-        position = int(angle / 0.088)
+
+        position = int(angle / 0.088) + 2048
+        # print(f"{angle} angle converted to position {position}")
+        return position
+
+
+    def radianToPosition(self, radian):
+        # convert angle to position value, note this is float to int
+        # current_angle = (position - 2048) * 0.001535 
+        
+        position = int(radian / 0.001535) + 2048
         # print(f"{angle} angle converted to position {position}")
         return position
 
@@ -404,6 +433,19 @@ class dynamixel_utils:
     def setAngle(self, servo_id, angle):
         position = self.angleToPosition(angle)
         # print(position)
+
+        self.setPosition(servo_id, position)
+
+
+    def setRadian(self, servo_id, radian):
+        position = self.radianToPosition(radian)
+        # print(position)
+
+        self.setPosition(servo_id, position)
+
+
+    def setPosition(self, servo_id, position):
+        # print(f"{servo_id}, {position}")
 
         dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(
             self.portHandler, servo_id, self.ADDR_GOAL_POSITION, position)
@@ -458,12 +500,12 @@ class dynamixel_utils:
         for i in range(100):
             new_angles = {}
             for servo_name, servo_id in servo_details.items():
-                value = lerp(start_angles[servo_id], angles[servo_id], i / 100)
+                value = self.lerp(start_angles[servo_id], angles[servo_id], i / 100)
                 if value == None:
                     print(f"Unable to set position for {servo_name}")
                     continue
                 new_angles[servo_id] = value
-            setAllAngles(new_angles)
+            self.setAllAngles(new_angles)
             
             time.sleep(interval)
 
@@ -480,31 +522,31 @@ class dynamixel_utils:
                     print(f"Unable to set position for {servo_name}")
                     continue
                 new_positions[servo_id] = value
-            setAllPositions(new_positions)
+            self.setAllPositions(new_positions)
             
             time.sleep(interval)
 
     # Read current positions for all servos and move home
-    def moveToHome():
-        enableAllServos()
+    def moveToHome(self):
+        self.enableAllServos()
 
-        start_angles = readAllAngles()
+        start_angles = self.readAllAngles()
 
         for i in range(100):
             angles = {}
             for servo_name, servo_id in servo_details.items():
-                value = lerp(start_angles[servo_id], home_positions[servo_id], i / 100)
+                value = self.lerp(start_angles[servo_id], self.home_positions[servo_id], i / 100)
                 if value == None:
                     print(f"Unable to set position for {servo_name}")
                     continue
                 angles[servo_id] = value
             print(angles)
-            setAllAngles(angles)
+            self.setAllAngles(angles)
             print(i)
             time.sleep(0.005)
 
 
-    def getHomePositions():
+    def getHomePositions(self):
         home_values = {}
 
         # Iterate through all servos, setting home location
@@ -514,9 +556,9 @@ class dynamixel_utils:
                 break
 
             # Read present position
-            angle = getCurrentAngle(servo_id)
-            setServoTorque(servo_id, 1)
-            setLED(servo_id, 1)
+            angle = self.getCurrentAngle(servo_id)
+            self.setServoTorque(servo_id, 1)
+            self.setLED(servo_id, 1)
             home_values[servo_id] = angle
 
         print(f"Home positions: {home_values}")
@@ -525,7 +567,7 @@ class dynamixel_utils:
         print("press any key to disable servos and exit")
         getch()
 
-        disableAllServos()
+        # disableAllServos()
         # Close port
 
 

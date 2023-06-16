@@ -3,10 +3,10 @@
 import rospy
 from sensor_msgs.msg import JointState
 from servo_utils import dynamixel_utils
-from jointlist import servo_details, servo_torque_constants
+from sensor_msgs.msg import Joy
+from jointlist import servo_details, servo_torque_constants, home_positions
 import sys
 import signal
-import threading
 
 servos = None
 
@@ -59,10 +59,16 @@ if __name__ == '__main__':
         signal.signal(signal.SIGINT, handler)
 
         servos = dynamixel_utils('/dev/ttyUSB0', 1000000)
-        servos.disableAllServos()
+        # servos.disableAllServos()
 
-        publishThread = threading.Thread(target=publishJointState)
-        publishThread.start()
+        servos.enableAllServos()
+        # servos.getHomePositions()
+        servos.lerpToAngles(home_positions, 1)
+
+        print(servos.readAllRadians())
+
+        # publishThread = threading.Thread(target=publishJointState)
+        # publishThread.start()
     
 
     except rospy.ROSInterruptException:
