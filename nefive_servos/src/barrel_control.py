@@ -6,7 +6,7 @@ import signal
 import sys, os
 import time
 from servo_utils import dynamixel_utils
-from jointlist import servo_details, servo_torque_constants, home_positions
+from jointlist import servo_details, servo_torque_constants, home_positions, barrel_grab
 
 if os.name == 'nt':
     import msvcrt
@@ -101,11 +101,10 @@ joint_dict = {
 }
 
 # stores the current positions of all the servos
-angles = home_positions
+angles = barrel_grab
 
 # print(angles)
 # getch()
-
 
 def Lerp(start, end, ratio):
     if start == end:
@@ -125,6 +124,7 @@ def InitServos():
     servos.lerpToAngles(angles, 2)
 
 
+
 def DisableServos():
     servos.disableAllServos()
 
@@ -135,42 +135,7 @@ def handler(signum, frame):
     sys.exit()
 
 
-pan_servo = 116
-tilt_servo = 117
-roll_servo = 118
-
-pan = pan_centre = 0
-tilt = tilt_centre = 0
-roll = roll_centre = 0
-
-pan_min = -57.3 + pan_centre
-pan_max =  57.3 + pan_centre
-
-tilt_min = -57.3 + tilt_centre
-tilt_max =  27 + tilt_centre
-
-roll_min = -35 + roll_centre
-roll_max =  35 + roll_centre
-
-def reset():
-    global pan, tilt, roll, angles
-    pan = pan_centre
-    tilt = tilt_centre
-
-    angles[pan_servo] = pan_centre
-    angles[tilt_servo] = tilt_centre
-    angles[roll_servo] = roll_centre
-    
-def scaleinput(input, invert, scale):
-    if scale != 0:
-        scaled = input / scale
-    else:
-        scaled = input
-
-    if(invert):
-        scaled = scaled * -1
-
-    return scaled
+trigger_pulled = False
 
 leftButtonPrevious = False
 leftButtonCurrent = False
@@ -203,16 +168,17 @@ def joy_callback(data):
         ry = data.axes[axesDict["ry"]]
         rz = data.axes[axesDict["rz"]]
 
-
         reduction = 0.5
 
         leftAxisX = scaleinput(lx, False, reduction)
         leftAxisY = scaleinput(ly, False, reduction)
         leftAxisZ = scaleinput(lz, False, reduction)
 
-        rightAxisX = scaleinput(rx, True, reduction)
-        rightAxisY = scaleinput(ry, True, reduction)
-        rightAxisZ = scaleinput(rz, True, reduction)
+        rightAxisX = scaleinput(rx, False, reduction)
+        rightAxisY = scaleinput(ry, False, reduction)
+        rightAxisZ = scaleinput(rz, False, reduction)
+
+        # print(f"{leftAxisX}, {leftAxisY}, {leftAxisZ}")
 
         trigger_curr = data.buttons[buttonsDict["Trigger"]]
 
@@ -223,7 +189,8 @@ def joy_callback(data):
         rightStickButton = data.buttons[buttonsDict["RightStick"]]
         rightControlArm = data.buttons[buttonsDict["ToggleUp"]]
         rightControlHand = data.buttons[buttonsDict["S2"]]
-        
+
+
         leftPressed = False
         if leftStickButton != leftButtonPrevious:
             leftButtonPrevious = leftStickButton
@@ -243,65 +210,55 @@ def joy_callback(data):
         if trigger_pulled:
             print(angles)
 
-        # if leftPressed:
-        #     if leftHandOpen:
-        #         leftHandOpen = False
-        #         angles[joint_dict["left_hand"]] = -13
-        #     else: 
-        #         leftHandOpen = True
-        #         angles[joint_dict["left_hand"]] = 30
+        if leftPressed:
+            print(leftHandOpen)
+            if leftHandOpen:
+                leftHandOpen = False
+                angles[joint_dict["left_hand"]] = -13
+            else: 
+                leftHandOpen = True
+                angles[joint_dict["left_hand"]] = 30
 
-        # if rightPressed:
-        #     if rightHandOpen:
-        #         rightHandOpen = False
-        #         angles[joint_dict["right_hand"]] = -13
-        #     else: 
-        #         rightHandOpen = True
-        #         angles[joint_dict["right_hand"]] = 30
+        if rightPressed:
+            print(rightHandOpen)
+            if rightHandOpen:
+                rightHandOpen = False
+                angles[joint_dict["right_hand"]] = -13
+            else: 
+                rightHandOpen = True
+                angles[joint_dict["right_hand"]] = 30
+
+
 
         start_angles = angles
 
         # We're in left arm control mode, check if arm/hand control needed
         if(leftControlArm == 1):
-            if(leftControlHand == 0):
-                # control the arm, not the wrist
-                if leftStickButton == 0:
-                    angles[joint_dict["left_foreaft"]] -= leftAxisY 
-                else:
-                    angles[joint_dict["left_elbow"]] -= leftAxisY
-
-                angles[joint_dict["left_flappy"]] -= leftAxisZ      
-                angles[joint_dict["left_upper_rotate"]] += leftAxisX      
-        
-            if(leftControlHand == 1):
-                # controlling the wrist/hand      
-                # pan
-                angles[joint_dict["left_wrist_pan"]] += leftAxisX
-                # tilt
-                angles[joint_dict["left_wrist_tilt"]] += leftAxisY
-                # roll
-                angles[joint_dict["left_wrist_rotate"]] += leftAxisZ
+            # if(leftStickButton == 0):
+            #     # positions.servo1 -= leftAxisY 
+            #     angles[joint_dict["left_foreaft"]] = round(angles[joint_dict["left_foreaft"]] - leftAxisY, 1) 
+           
+            # controlling the wrist/hand      
+            # pan
+            angles[joint_dict["left_wrist_pan"]] += leftAxisX
+            # tilt
+            angles[joint_dict["left_wrist_tilt"]] += leftAxisY
+            # roll
+            angles[joint_dict["left_wrist_rotate"]] += leftAxisZ
 
         # We're in right arm control mode, check if arm/hand control needed
         if(rightControlArm == 1):
-            if(rightControlHand == 0):                           
-                if(rightStickButton == 0):
-                    # positions.servo1 -= leftAxisY 
-                    angles[joint_dict["right_foreaft"]] -= rightAxisY 
-                else:
-                    angles[joint_dict["right_elbow"]] -= rightAxisY
-
-                angles[joint_dict["right_flappy"]] -= rightAxisZ      
-                angles[joint_dict["right_upper_rotate"]] += rightAxisX      
-        
-            if(rightControlHand == 1):
-                # controlling the wrist/hand      
-                # pan
-                angles[joint_dict["right_wrist_pan"]] += rightAxisX
-                # tilt
-                angles[joint_dict["right_wrist_tilt"]] += rightAxisY
-                # roll
-                angles[joint_dict["right_wrist_rotate"]] += rightAxisZ
+            # if(rightStickButton == 0):
+            #     # positions.servo1 -= leftAxisY 
+            #     angles[joint_dict["right_foreaft"]] -= rightAxisY 
+           
+            # controlling the wrist/hand      
+            # pan
+            angles[joint_dict["right_wrist_pan"]] += rightAxisX
+            # tilt
+            angles[joint_dict["right_wrist_tilt"]] += rightAxisY
+            # roll
+            angles[joint_dict["right_wrist_rotate"]] += rightAxisZ
 
         # print(angles)   
 
@@ -322,40 +279,7 @@ def joy_callback(data):
         # print(f"100 actual: {servos.getCurrentPosition(100)}")
         # print(f"100 target: {servos.angleToPosition(angles[100])}")
 
-    
-    if(data.buttons[buttonsDict["ToggleDown"]] == 1):
-        # print(data.axes[3], data.axes[4])
-        pan_diff = scaleinput(data.axes[3], False, 0.25)
-        tilt_diff = scaleinput(data.axes[4], True, 0.25)            
-        roll_diff = scaleinput(data.axes[5], True, 0.5)
-    
-        pan = angles[116] + pan_diff
-        tilt = angles[117] + tilt_diff
-        roll = angles[118] + roll_diff
-
-        if(pan > pan_max):
-            pan = pan_max
-        elif(pan < pan_min):
-            pan = pan_min
-
-        if(tilt > tilt_max):
-            tilt = tilt_max
-        elif(tilt < tilt_min):
-            tilt = tilt_min
-
-        if(roll > roll_max):
-            roll = roll_max
-        elif(roll < roll_min):
-            roll = roll_min
-
-        
-        angles[pan_servo] = pan
-        angles[tilt_servo] = tilt
-        angles[roll_servo] = roll
-        
-        # print(pan, tilt, roll)
-
-    servos.setAllAngles(angles)
+        servos.setAllAngles(angles)
 
 
 def scaleinput(input, invert, scale):
@@ -380,11 +304,11 @@ def TriggerButton(input):
         return 0
 
 # Rotation is centred on 0.5 so need to map for that
-# def MapAxis(input):
-#     if((input >= 0.43) & (input <= 0.57)):
-#         return 0
-#     else:
-#         return input - 0.5
+def MapAxis(input):
+    if((input >= 0.43) & (input <= 0.57)):
+        return 0
+    else:
+        return input - 0.5
 
 
 def listener():

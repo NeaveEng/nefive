@@ -6,12 +6,12 @@
         <arg name="z" value="0.2" />
         <arg 
             name="urdf_robot_file"
-            value="$(find nefive_description)/urdf/nefive.urdf"
+            value="$(find nefive_description)/urdf/nefive.urdf.xacro"
         />
         <arg name="robot_name" value="nefive" />
     </include>
 
-    <param name="robot_description" command="cat $(find nefive_description)/urdf/nefive.urdf" />
+    <param name="robot_description" command="cat $(find nefive_description)/urdf/nefive.urdf.xacro" />
 
     <param name="/use_sim_time" value="true"/>
 </launch>

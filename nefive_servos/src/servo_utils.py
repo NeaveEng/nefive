@@ -99,16 +99,16 @@ class dynamixel_utils:
             
         error_states = self.readAllHardwareStatus()
         for servo_name, servo_id in servo_details.items():
-            if not error_states[servo_id] == 0:
+            if error_states[servo_id] != 0:
                 print(f"[{servo_id}]: {error_states[servo_id]}")
 
-            dxl_comm_result, dxl_error = self.packetHandler.reboot(self.portHandler, servo_id)
-            if dxl_comm_result != COMM_SUCCESS:
-                print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-            elif dxl_error != 0:
-                print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+                dxl_comm_result, dxl_error = self.packetHandler.reboot(self.portHandler, servo_id)
+                if dxl_comm_result != COMM_SUCCESS:
+                    print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+                elif dxl_error != 0:
+                    print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-            # print("[ID:%03d] reboot Succeeded\n" % servo_id)
+                print("[ID:%03d] reboot Succeeded\n" % servo_id)
         
         # Sleep for 0.1 second to let the port open
         time.sleep(0.1)
@@ -166,6 +166,7 @@ class dynamixel_utils:
     def readAllRadians(self):
         radians = {}
         positions = self.readAllPositions()
+        
         if positions == None:
             return None
         
@@ -353,7 +354,7 @@ class dynamixel_utils:
 
     def getCurrentAngle(self, servo_id):
         position_signed = self.getCurrentPosition(servo_id)
-        current_angle = position_signed * 0.088
+        current_angle = self.positionToAngle(position_signed)
         return round(current_angle, 2)
 
 
@@ -475,6 +476,26 @@ class dynamixel_utils:
         elif dxl_error != 0:
             print("SetServo: %s" % self.packetHandler.getRxPacketError(dxl_error))
 
+    def readAllTorqueStates(self):
+        groupSyncRead = GroupSyncRead(self.portHandler, self.packetHandler, self.ADDR_TORQUE_ENABLE, 1)
+        for servo_name, servo_id in servo_details.items():
+            dxl_addparam_result = groupSyncRead.addParam(servo_id)
+
+        dxl_comm_result = groupSyncRead.txRxPacket()
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+
+        present_torque_states = {}
+        for servo_name, servo_id in servo_details.items():
+            dxl_getdata_result = groupSyncRead.isAvailable(servo_id, self.ADDR_TORQUE_ENABLE, 1)
+            if dxl_getdata_result != True:
+                print("[ID:%03d] groupSyncRead getdata failed" % servo_id)
+                present_torque_states[servo_id] = None
+            else:
+                present_torque_states[servo_id] = int(groupSyncRead.getData(servo_id, self.ADDR_TORQUE_ENABLE, 1))
+
+        return present_torque_states
+
 
     # Disable all LEDs and servos
     def disableAllServos(self):
@@ -484,9 +505,11 @@ class dynamixel_utils:
 
 
     def enableAllServos(self):
+        states = self.readAllTorqueStates()
         for servo_name, servo_id in servo_details.items():
-            self.setServoTorque(servo_id, self.TORQUE_ENABLE)
-            self.setLED(servo_id, self.LED_ENABLE)
+            if states[servo_id] == 0:
+                self.setServoTorque(servo_id, self.TORQUE_ENABLE)
+                self.setLED(servo_id, self.LED_ENABLE)
 
 
     def lerp(self, start, end, ratio):
@@ -506,6 +529,7 @@ class dynamixel_utils:
                     continue
                 new_angles[servo_id] = value
             self.setAllAngles(new_angles)
+            # print(new_angles)
             
             time.sleep(interval)
 
@@ -560,6 +584,7 @@ class dynamixel_utils:
             self.setServoTorque(servo_id, 1)
             self.setLED(servo_id, 1)
             home_values[servo_id] = angle
+            print(f"{servo_name} home angle is {angle}")
 
         print(f"Home positions: {home_values}")
 
@@ -613,6 +638,8 @@ class dynamixel_utils:
     
     # set all servos to current-position mode
     def setOperatingModes(value):
+        return
+    
         for servo_name, servo_id in servo_details.items():
             setServoTorque(servo_id, 0)
             setOperatingMode(servo_id, value)
