@@ -516,6 +516,24 @@ class dynamixel_utils:
         return round((ratio * end) + ((1 - ratio) * start), 1)
 
 
+    def lerpToRadians(self, radians, lerp_time):
+        start_radians = self.readAllRadians()
+        interval = lerp_time / 100
+        print(f"Lerp interval: {interval}")
+        for i in range(100):
+            new_radians = {}
+            for servo_name, servo_id in servo_details.items():
+                value = self.lerp(start_radians[servo_id], radians[servo_id], i / 100)
+                if value == None:
+                    print(f"Unable to set position for {servo_name}")
+                    continue
+                new_radians[servo_id] = value
+            self.setAllRadians(new_radians)
+            # print(new_radians)
+            
+            time.sleep(interval)
+
+
     def lerpToAngles(self, angles, lerp_time):
         start_angles = self.readAllAngles()
         interval = lerp_time / 100

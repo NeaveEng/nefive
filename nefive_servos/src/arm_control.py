@@ -2,6 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import Joy
+from nefive_servos.msg import arm_servos, servo_position
 import signal
 import sys, os
 import time
@@ -182,7 +183,7 @@ rightPressed = False
 leftHandOpen = True
 rightHandOpen = True
 
-def joy_callback(data):
+def joy_callback(data: Joy):
     global angles, trigger_prev, lerpingInProgress, leftButtonPrevious, rightButtonPrevious, leftHandOpen, rightHandOpen
     if lerpingInProgress == True:
         # print("lerping in progress")
@@ -202,7 +203,6 @@ def joy_callback(data):
         rx = data.axes[axesDict["rx"]]
         ry = data.axes[axesDict["ry"]]
         rz = data.axes[axesDict["rz"]]
-
 
         reduction = 0.5
 
@@ -354,8 +354,59 @@ def joy_callback(data):
         angles[roll_servo] = roll
         
         # print(pan, tilt, roll)
-
+    
     servos.setAllAngles(angles)
+
+
+def arm_callback(data: arm_servos):
+    global angles, lerpingInProgress
+
+    if lerpingInProgress == True:
+        time.sleep(0.5)
+
+    #do some stuff
+    print(f"arm msg: {data}")
+    if data.arm == 0: # left arm
+        angles[joint_dict["left_flappy"]] = data.shoulder_flappy
+        angles[joint_dict["left_foreaft"]] = data.shoulder_foraft
+        angles[joint_dict["left_upper_rotate"]] = data.upperarm_rotate
+        angles[joint_dict["left_elbow"]] = data.elbow
+        angles[joint_dict["left_wrist_pan"]] = data.wrist_pan
+        angles[joint_dict["left_wrist_rotate"]] = data.wrist_rotate
+        angles[joint_dict["left_wrist_tilt"]] = data.wrist_tilt
+
+        lerpingInProgress = True
+        servos.lerpToAngles(angles, 2)
+        lerpingInProgress = False
+
+        return
+               
+    elif data.arm == 1: # right arm
+        angles[joint_dict["right_flappy"]] = data.shoulder_flappy
+        angles[joint_dict["right_foreaft"]] = data.shoulder_foraft
+        angles[joint_dict["right_upper_rotate"]] = data.upperarm_rotate
+        angles[joint_dict["right_elbow"]] = data.elbow
+        angles[joint_dict["right_wrist_pan"]] = data.wrist_pan
+        angles[joint_dict["right_wrist_rotate"]] = data.wrist_rotate
+        angles[joint_dict["right_wrist_tilt"]] = data.wrist_tilt
+
+        lerpingInProgress = True
+        servos.lerpToAngles(angles, 2)
+        lerpingInProgress = False
+
+        return
+    else:
+        print("ERROR! No valid arm specified!")
+    
+
+def hand_callback(data: servo_position):
+    global angles
+    print(f"hand msg: {data}")
+    while lerpingInProgress == True:
+        time.sleep(0.5)
+
+    servos.setPosition(data.id, data.goal_pos)
+    angles[data.id] = servos.positionToAngle(data.goal_pos)
 
 
 def scaleinput(input, invert, scale):
@@ -390,7 +441,9 @@ def TriggerButton(input):
 def listener():
     global pospub
     rospy.init_node('dynamixel_arm_driver', anonymous=True)
-    rospy.Subscriber('joy', Joy, joy_callback)
+    # rospy.Subscriber('joy', Joy, joy_callback)
+    rospy.Subscriber('nefive_servos/arms', arm_servos, arm_callback)
+    rospy.Subscriber('nefive_servos/servo_position', servo_position, hand_callback)
 
     rospy.spin()
 
