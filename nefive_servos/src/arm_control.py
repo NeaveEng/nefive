@@ -441,7 +441,7 @@ def TriggerButton(input):
 def listener():
     global pospub
     rospy.init_node('dynamixel_arm_driver', anonymous=True)
-    # rospy.Subscriber('joy', Joy, joy_callback)
+    rospy.Subscriber('joy', Joy, joy_callback)
     rospy.Subscriber('nefive_servos/arms', arm_servos, arm_callback)
     rospy.Subscriber('nefive_servos/servo_position', servo_position, hand_callback)
 
