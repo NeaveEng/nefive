@@ -1,0 +1,5 @@
+<launch>
+    <rosparam file="$(find nefive_vision)/params/left.yaml" command="load"/>
+    <rosparam file="$(find nefive_vision)/params/right.yaml" command="load"/>
+    <node name="camera_node" pkg="nefive_vision" type="publish_images.py" />
+</launch>

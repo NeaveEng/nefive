@@ -10,7 +10,7 @@ from cv_bridge import CvBridge
 import numpy as np
 import depthai as dai
 import rospy
-from sensor_msgs.msg import Image, CameraInfo
+from sensor_msgs.msg import Image, CompressedImage, CameraInfo
 
 debugMode = False
 
@@ -18,8 +18,9 @@ def signal_handler(signal, frame):
     print('CTRL-C caught, exiting.')
     sys.exit(0)
 
-
 signal.signal(signal.SIGINT, signal_handler)
+
+
 
 temporalSettings = {
     "OFF":  dai.StereoDepthConfig.PostProcessing.TemporalFilter.PersistencyMode.PERSISTENCY_OFF,
@@ -40,10 +41,7 @@ medianMap = {
     "7x7": dai.StereoDepthProperties.MedianFilter.KERNEL_7x7,
 }
 
-def parse_calibration_yaml(calib_file):
-    with open(calib_file, 'r') as f:
-        params = yaml.full_load(f)
-
+def parse_calibration_yaml(params):
     cam_info = CameraInfo()
     cam_info.height = params['image_height']
     cam_info.width = params['image_width']
@@ -55,7 +53,7 @@ def parse_calibration_yaml(calib_file):
 
     return cam_info
 
-fps = 18
+fps = 12
 
 # Create pipeline
 print("Creating pipeline...")
@@ -144,8 +142,8 @@ rightCam.isp.link(stereo.right)
 stereo.depth.link(depthOut.input)
 stereo.disparity.link(disparityOut.input)
 
-left_img_pub = rospy.Publisher('stereo/right/image', Image, queue_size=1)
-right_img_pub = rospy.Publisher('stereo/left/image', Image, queue_size=1)
+left_img_pub = rospy.Publisher('stereo/left/image', Image, queue_size=1)
+right_img_pub = rospy.Publisher('stereo/right/image', Image, queue_size=1)
 depth_img_pub = rospy.Publisher('stereo/depth/image', Image, queue_size=1)
 disparity_img_pub = rospy.Publisher('stereo/disparity/image', Image, queue_size=1)
 
@@ -153,6 +151,10 @@ left_cam_pub = rospy.Publisher('stereo/right/camera_info', CameraInfo, queue_siz
 right_cam_pub = rospy.Publisher('stereo/left/camera_info', CameraInfo, queue_size=1)
 depth_cam_pub = rospy.Publisher('stereo/depth/camera_info', CameraInfo, queue_size=1)
 disparity_cam_pub = rospy.Publisher('stereo/disparity/camera_info', CameraInfo, queue_size=1)
+
+left_compressed_pub = rospy.Publisher('stereo/left/image/compressed', CompressedImage, queue_size=1)
+right_compressed_pub = rospy.Publisher('stereo/right/image/compressed', CompressedImage, queue_size=1)
+disparity_compressed_pub = rospy.Publisher('stereo/disparity/image/compressed', CompressedImage, queue_size=1)
 
 # init messages
 left_img_msg = Image()
@@ -183,14 +185,20 @@ disparity_img_msg.step = width * 3
 disparity_img_msg.encoding = 'rgb8'
 disparity_img_msg.header.frame_id = 'right_camera'
 
-imageBytes = height * width * 3
+left_img_compressed = CompressedImage()
+right_img_compressed = CompressedImage()
+disparity_img_compressed = CompressedImage()
+
+left_img_compressed.format = "jpeg"
+right_img_compressed.format = "jpeg"
+disparity_img_compressed.format = "jpeg"
 
 
 # parse the left and right camera calibration yaml files
-left_cam_info = parse_calibration_yaml('left.yaml')
-right_cam_info = parse_calibration_yaml('right.yaml')
-depth_cam_info = parse_calibration_yaml('right.yaml')
-disparity_cam_info = parse_calibration_yaml('right.yaml')
+left_cam_info = rospy.get_param("left_cam_info")
+right_cam_info = depth_cam_info = disparity_cam_info = rospy.get_param("right_cam_info")
+left_cam_info_msg = parse_calibration_yaml(left_cam_info)
+right_cam_info_msg = parse_calibration_yaml(right_cam_info)
 
 rospy.init_node('stereo_pub')
 br = CvBridge()
@@ -238,9 +246,13 @@ with device:
                 cv2.imshow(leftWindowName, frameLeft)
 
             left_img_msg.header.stamp = stamp
-            left_cam_info.header.stamp = stamp
-            left_cam_pub.publish(left_cam_info)
+            left_cam_info_msg.header.stamp = stamp
+            left_cam_pub.publish(left_cam_info_msg)
             left_img_pub.publish(br.cv2_to_imgmsg(frameLeft, encoding="bgr8"))
+
+            left_img_compressed.header.stamp = stamp
+            left_img_compressed.data = np.array(cv2.imencode('.jpg', frameLeft)[1]).tobytes()
+            left_compressed_pub.publish(left_img_compressed)
 
         if latestPacket["right"] is not None:
             frameRight = latestPacket["right"].getCvFrame()
@@ -248,9 +260,13 @@ with device:
                 cv2.imshow(rightWindowName, frameRight)
 
             right_img_msg.header.stamp = stamp
-            right_cam_info.header.stamp = stamp
-            right_cam_pub.publish(right_cam_info)
+            right_cam_info_msg.header.stamp = stamp
+            right_cam_pub.publish(right_cam_info_msg)
             right_img_pub.publish(br.cv2_to_imgmsg(frameRight, encoding="bgr8"))
+
+            right_img_compressed.header.stamp = stamp
+            right_img_compressed.data = np.array(cv2.imencode('.jpg', frameRight)[1]).tobytes()
+            right_compressed_pub.publish(right_img_compressed)
 
         if latestPacket["depth"] is not None:
             frameDepth = latestPacket["depth"].getCvFrame()
@@ -275,10 +291,14 @@ with device:
             if debugMode == True:
                 cv2.imshow(dispWindowName, frameDisp)
 
-            # disparity_img_msg.header.stamp = stamp
-            # disparity_cam_info.header.stamp = stamp
-            # disparity_cam_pub.publish(disparity_cam_info)
-            # disparity_img_pub.publish(br.cv2_to_imgmsg(frameDisp, encoding="bgr8"))
+            disparity_img_msg.header.stamp = stamp
+            right_cam_info_msg.header.stamp = stamp
+            disparity_cam_pub.publish(right_cam_info_msg)
+            disparity_img_pub.publish(br.cv2_to_imgmsg(frameDisp, encoding="bgr8"))
+
+            disparity_img_compressed.header.stamp = stamp
+            disparity_img_compressed.data = np.array(cv2.imencode('.jpg', frameDisp)[1]).tobytes()
+            disparity_compressed_pub.publish(disparity_img_compressed)
 
         # Blend when both received
         if frameRight is not None and frameDisp is not None:
@@ -293,11 +313,6 @@ with device:
             #     blended = cv2.addWeighted(frameRight, 0.5, detected, 1, 0)
 
             blended = cv2.addWeighted(frameRight, 0.6, frameDisp, 0.4, 0)
-            
-            disparity_img_msg.header.stamp = stamp
-            disparity_cam_info.header.stamp = stamp
-            disparity_cam_pub.publish(disparity_cam_info)
-            disparity_img_pub.publish(br.cv2_to_imgmsg(blended, encoding="bgr8"))
 
             # cv2.imshow(blendedWindowName, blended)
             frameRight = None
