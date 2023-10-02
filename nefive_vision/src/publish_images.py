@@ -174,8 +174,8 @@ right_img_msg.header.frame_id = 'right_camera'
 depth_img_msg = Image()
 depth_img_msg.height = height
 depth_img_msg.width = width
-depth_img_msg.step = width * 3  # bytes per row: pixels * channels * bytes per channel (1 normally)
-depth_img_msg.encoding = 'rgb8'
+depth_img_msg.step = width * 1  # bytes per row: pixels * channels * bytes per channel (1 normally)
+depth_img_msg.encoding = 'uint16'
 depth_img_msg.header.frame_id = 'right_camera'  # TF frame
 
 disparity_img_msg = Image()
@@ -232,13 +232,15 @@ with device:
         latestPacket["depth"] = None
         latestPacket["disp"] = None
 
+        stamp = rospy.Time.now()
+        left_cam_info_msg.header.stamp = stamp
+        right_cam_info_msg.header.stamp = stamp
+
         queueEvents = device.getQueueEvents(("left", "right", "depth", "disp"))
         for queueName in queueEvents:
             packets = device.getOutputQueue(queueName).tryGetAll()
             if len(packets) > 0:
                 latestPacket[queueName] = packets[-1]
-        
-        stamp = rospy.Time.now()
             
         if latestPacket["left"] is not None:
             frameLeft = latestPacket["left"].getCvFrame()
@@ -246,7 +248,6 @@ with device:
                 cv2.imshow(leftWindowName, frameLeft)
 
             left_img_msg.header.stamp = stamp
-            left_cam_info_msg.header.stamp = stamp
             left_cam_pub.publish(left_cam_info_msg)
             left_img_pub.publish(br.cv2_to_imgmsg(frameLeft, encoding="bgr8"))
 
@@ -260,7 +261,6 @@ with device:
                 cv2.imshow(rightWindowName, frameRight)
 
             right_img_msg.header.stamp = stamp
-            right_cam_info_msg.header.stamp = stamp
             right_cam_pub.publish(right_cam_info_msg)
             right_img_pub.publish(br.cv2_to_imgmsg(frameRight, encoding="bgr8"))
 
@@ -273,10 +273,9 @@ with device:
             if debugMode == True:
                 cv2.imshow(depthWindowName, frameDepth)
 
-            # depth_img_msg.header.stamp = stamp
-            # depth_cam_info.header.stamp = stamp
-            # depth_cam_pub.publish(depth_cam_info)
-            # depth_img_pub.publish(br.cv2_to_imgmsg(frameDepth, encoding="bgr8"))
+            depth_img_msg.header.stamp = stamp
+            depth_cam_pub.publish(right_cam_info_msg)
+            depth_img_pub.publish(br.cv2_to_imgmsg(frameDepth))
 
 
         if latestPacket["disp"] is not None:
@@ -292,7 +291,6 @@ with device:
                 cv2.imshow(dispWindowName, frameDisp)
 
             disparity_img_msg.header.stamp = stamp
-            right_cam_info_msg.header.stamp = stamp
             disparity_cam_pub.publish(right_cam_info_msg)
             disparity_img_pub.publish(br.cv2_to_imgmsg(frameDisp, encoding="bgr8"))
 
