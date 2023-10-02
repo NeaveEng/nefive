@@ -1,0 +1,3 @@
+<launch>
+  <node name="arm_control_node" pkg="nefive_servos" type="arm_control.py" />
+</launch>

@@ -1,0 +1,3 @@
+<launch>
+  <node name="barrel_control_node" pkg="nefive_servos" type="barrel_control.py" />
+</launch>

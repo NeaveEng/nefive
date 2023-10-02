@@ -14,7 +14,8 @@
   <exec_depend>nefive_moveit</exec_depend>
   <exec_depend>nefive_servos</exec_depend>
   <exec_depend>nefive_vision</exec_depend>
-
+  <exec_depend>nefive_bringup</exec_depend>
+  
   <export>
     <metapackage/>
   </export>
