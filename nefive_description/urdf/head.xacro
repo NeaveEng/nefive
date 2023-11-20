@@ -73,8 +73,7 @@
       <material name="black" />
     </visual>
   </link>
-  <link name="right_camera">
-  </link>
+  <link name="right_camera" />
   
   <joint name="chest_box_head_pan_joint" type="revolute">
     <origin xyz="0.025 0 0.0819" />
@@ -131,6 +130,7 @@
   </joint>
   <joint name="right_eye_inner_right_camera_joint" type="fixed">
     <parent link="right_eye_inner" />
+    <origin rpy="${-pi/2} 0 ${-pi/2}" />
     <child link="right_camera" />
   </joint>
 

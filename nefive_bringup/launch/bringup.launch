@@ -2,5 +2,6 @@
     <include file="$(find nefive_motion)/launch/mecanum_drive.launch"/>
     <include file="$(find nefive_vision)/launch/camera.launch"/>
     <include file="$(find nefive_servos)/launch/arm_control.launch"/>
+    <include file="$(find nefive_description)/launch/nefive_spawn.launch"/>
     <node name="ADC" pkg="ros_redboard" type="adc.py" ns="RedBoard" />
 </launch>

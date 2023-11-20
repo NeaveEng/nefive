@@ -13,6 +13,6 @@
     <remap from="/joint_states" to="/nefive/joint_states" />
   </node>
 
-  <node ns="$(arg namespace)" name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+  <!-- <node ns="$(arg namespace)" name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
 
 </launch>

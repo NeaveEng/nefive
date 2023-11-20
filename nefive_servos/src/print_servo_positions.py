@@ -6,6 +6,6 @@ import time
 servos = dynamixel_utils('/dev/ttyUSB0', 1000000)
 
 while True:
-    print(servos.readAllRadians())
+    print(servos.readAllAngles())
     time.sleep(0.25)
 
