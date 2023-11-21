@@ -117,11 +117,6 @@ def Lerp(start, end, ratio):
 
 
 def InitServos():
-    # Set servos to current-based position mode
-    servos.setOperatingModes(servos.CURRENT_BASED_POSITION_MODE)
-    servos.setAllCurrentLimits(servoDetails.current_limits)
-    servos.setAllCurrentGoals(servoDetails.current_goals)
-
     servos.enableAllServos()
     servos.lerpToAngles(angles, 2)
 
