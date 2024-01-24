@@ -11,17 +11,17 @@ import numpy as np
 import depthai as dai
 import rospy
 from sensor_msgs.msg import Image, CompressedImage, CameraInfo, PointCloud2
-import open3d as o3d
-from projector_device import PointCloudVisualizer
-from projector_3d import PointCloudVisualizer3d
-from open3d_ros_helper import open3d_ros_helper as orh
+# import open3d as o3d
+# from projector_device import PointCloudVisualizer
+# from projector_3d import PointCloudVisualizer3d
+# from open3d_ros_helper import open3d_ros_helper as orh
 from pathlib import Path
 import os
 import rospkg
 
 
-se3 = np.eye(4)
-ros_transform = orh.se3_to_transform(se3) 
+# se3 = np.eye(4)
+# ros_transform = orh.se3_to_transform(se3) 
 
 debugMode = False
 
@@ -42,8 +42,8 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def create_xyz(width, height, camera_matrix):
-    xs = np.linspace(0, width - 1, width, dtype=np.float32)
-    ys = np.linspace(0, height - 1, height, dtype=np.float32)
+    xs = np.linspace(0, width - 1, width, dtype=float6)
+    ys = np.linspace(0, height - 1, height, dtype=float)
 
     # generate grid by stacking coordinates
     base_grid = np.stack(np.meshgrid(xs, ys)) # WxHx2
@@ -157,21 +157,25 @@ queueNames = []
 # Define sources and outputs
 leftCam = pipeline.create(dai.node.ColorCamera)
 rightCam = pipeline.create(dai.node.ColorCamera)
+centerCam = pipeline.create(dai.node.ColorCamera)
 stereo = pipeline.create(dai.node.StereoDepth)
 # stereo.enableDistortionCorrection(True)
 
 leftOut = pipeline.create(dai.node.XLinkOut)
 rightOut = pipeline.create(dai.node.XLinkOut)
+centerOut = pipeline.create(dai.node.XLinkOut)
 depthOut = pipeline.create(dai.node.XLinkOut)
 disparityOut = pipeline.create(dai.node.XLinkOut)
 
 leftOut.setStreamName("left")
 rightOut.setStreamName("right")
+centerOut.setStreamName("center")
 depthOut.setStreamName("depth")
 disparityOut.setStreamName("disp")
 
 queueNames.append("left")
 queueNames.append("right")
+queueNames.append("center")
 queueNames.append("depth")
 queueNames.append("disp")
 
@@ -181,17 +185,23 @@ height = 1200 * (scaleNumerator / scaleDenominator)
 width = 1920 * (scaleNumerator / scaleDenominator)
 
 # The disparity is computed at this resolution, then upscaled to RGB resolution
-colorResolution = dai.ColorCameraProperties.SensorResolution.THE_1200_P
+colorResolution = dai.ColorCameraProperties.SensorResolution.THE_1080_P
+stereoColorResolution = dai.ColorCameraProperties.SensorResolution.THE_1200_P
 
-leftCam.setResolution(colorResolution)
+leftCam.setResolution(stereoColorResolution)
 leftCam.setBoardSocket(dai.CameraBoardSocket.CAM_B)
 leftCam.setIspScale(scaleNumerator, scaleDenominator) 
 leftCam.setFps(fps)
 
-rightCam.setResolution(colorResolution)
+rightCam.setResolution(stereoColorResolution)
 rightCam.setBoardSocket(dai.CameraBoardSocket.CAM_C)
 rightCam.setIspScale(scaleNumerator, scaleDenominator)
 rightCam.setFps(fps)
+
+centerCam.setResolution(colorResolution)
+centerCam.setBoardSocket(dai.CameraBoardSocket.CAM_A)
+centerCam.setIspScale(scaleNumerator, scaleDenominator)
+centerCam.setFps(25)
 
 stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
 stereo.initialConfig.setConfidenceThreshold(245)
@@ -225,40 +235,45 @@ configureDepthPostProcessing(stereo)
 # stereo.initialConfig.set(config)
 
 # Depth -> PointCloud
-pcl = pipeline.create(dai.node.PointCloud)
-stereo.depth.link(pcl.inputDepth)
+# pcl = pipeline.create(dai.node.PointCloud)
+# stereo.depth.link(pcl.inputDepth)
 
-pcl_out = pipeline.createXLinkOut()
-pcl_out.setStreamName("pcl")
-queueNames.append("pcl")
+# pcl_out = pipeline.createXLinkOut()
+# pcl_out.setStreamName("pcl")
+# queueNames.append("pcl")
 
 print("Creating links...")
 # Linking
 leftCam.video.link(leftOut.input)
 rightCam.video.link(rightOut.input)
 
+centerCam.isp.link(centerOut.input)
+
 leftCam.isp.link(stereo.left)
 rightCam.isp.link(stereo.right)
 
 stereo.depth.link(depthOut.input)
 stereo.disparity.link(disparityOut.input)
-pcl.outputPointCloud.link(pcl_out.input)
+# pcl.outputPointCloud.link(pcl_out.input)
 
-left_img_pub = rospy.Publisher('stereo/left/image', Image, queue_size=1)
-right_img_pub = rospy.Publisher('stereo/right/image', Image, queue_size=1)
-depth_img_pub = rospy.Publisher('stereo/depth/image', Image, queue_size=1)
-disparity_img_pub = rospy.Publisher('stereo/disparity/image', Image, queue_size=1)
+left_img_pub = rospy.Publisher('camera/left/image', Image, queue_size=1)
+right_img_pub = rospy.Publisher('camera/right/image', Image, queue_size=1)
+center_img_pub = rospy.Publisher('camera/center/image', Image, queue_size=1)
+depth_img_pub = rospy.Publisher('camera/depth/image', Image, queue_size=1)
+disparity_img_pub = rospy.Publisher('camera/disparity/image', Image, queue_size=1)
 
-left_cam_pub = rospy.Publisher('stereo/right/camera_info', CameraInfo, queue_size=1)
-right_cam_pub = rospy.Publisher('stereo/left/camera_info', CameraInfo, queue_size=1)
-depth_cam_pub = rospy.Publisher('stereo/depth/camera_info', CameraInfo, queue_size=1)
-disparity_cam_pub = rospy.Publisher('stereo/disparity/camera_info', CameraInfo, queue_size=1)
+left_cam_pub = rospy.Publisher('camera/right/camera_info', CameraInfo, queue_size=1)
+right_cam_pub = rospy.Publisher('camera/left/camera_info', CameraInfo, queue_size=1)
+center_cam_pub = rospy.Publisher('camera/center/camera_info', CameraInfo, queue_size=1)
+depth_cam_pub = rospy.Publisher('camera/depth/camera_info', CameraInfo, queue_size=1)
+disparity_cam_pub = rospy.Publisher('camera/disparity/camera_info', CameraInfo, queue_size=1)
 
-left_compressed_pub = rospy.Publisher('stereo/left/image/compressed', CompressedImage, queue_size=1)
-right_compressed_pub = rospy.Publisher('stereo/right/image/compressed', CompressedImage, queue_size=1)
-disparity_compressed_pub = rospy.Publisher('stereo/disparity/image/compressed', CompressedImage, queue_size=1)
+left_compressed_pub = rospy.Publisher('camera/left/image/compressed', CompressedImage, queue_size=1)
+right_compressed_pub = rospy.Publisher('camera/right/image/compressed', CompressedImage, queue_size=1)
+center_compressed_pub = rospy.Publisher('camera/center/image/compressed', CompressedImage, queue_size=1)
+disparity_compressed_pub = rospy.Publisher('camera/disparity/image/compressed', CompressedImage, queue_size=1)
 
-pcl2_pub = rospy.Publisher('stereo/depth/points', PointCloud2, queue_size=1)
+# pcl2_pub = rospy.Publisher('camera/depth/points', PointCloud2, queue_size=1)
 
 # init messages
 left_img_msg = Image()
@@ -274,6 +289,13 @@ right_img_msg.width = width
 right_img_msg.step = width * 3
 right_img_msg.encoding = 'rgb8'
 right_img_msg.header.frame_id = 'right_camera'
+
+center_img_msg = Image()
+center_img_msg.height = height
+center_img_msg.width = width
+center_img_msg.step = width * 3
+center_img_msg.encoding = 'rgb8'
+center_img_msg.header.frame_id = 'center_camera'
 
 depth_img_msg = Image()
 depth_img_msg.height = height
@@ -291,17 +313,21 @@ disparity_img_msg.header.frame_id = 'right_camera'
 
 left_img_compressed = CompressedImage()
 right_img_compressed = CompressedImage()
+center_img_compressed = CompressedImage()
 disparity_img_compressed = CompressedImage()
 
 left_img_compressed.format = "jpeg"
 right_img_compressed.format = "jpeg"
+center_img_compressed.format = "jpeg"
 disparity_img_compressed.format = "jpeg"
 
 # parse the left and right camera calibration yaml files
 left_cam_info = rospy.get_param("left_cam_info")
 right_cam_info = depth_cam_info = disparity_cam_info = rospy.get_param("right_cam_info")
+# center_cam_info = rospy.get_param("center_cam_info")
 left_cam_info_msg = parse_calibration_yaml(left_cam_info)
 right_cam_info_msg = parse_calibration_yaml(right_cam_info)
+# center_cam_info_msg = parse_calibration_yaml(center_cam_info)
 
 rospy.init_node('stereo_pub')
 br = CvBridge()
@@ -320,7 +346,7 @@ with device:
     resolution = (640,400)
 
     calibData = device.readCalibration()
-    M_right = calibData.getCameraIntrinsics(dai.CameraBoardSocket.RIGHT,
+    M_right = calibData.getCameraIntrinsics(dai.CameraBoardSocket.CAM_C,
         dai.Size2f(resolution[0], resolution[1]),
     )
 
@@ -331,65 +357,68 @@ with device:
     # buff.setData(matrix)
     # device.getInputQueue("xyz_in").send(buff)
 
-    pcl_converter_3d = PointCloudVisualizer3d(M_right, resolution[0], resolution[1], vis=False)    
-    pcl_converter = PointCloudVisualizer()
+    # pcl_converter_3d = PointCloudVisualizer3d(M_right, resolution[0], resolution[1], vis=False)    
+    # pcl_converter = PointCloudVisualizer()
     # queue = device.getOutputQueue("pcl", maxSize=8, blocking=False)
 
-    pcl = None
+    # pcl = None
 
     if debugMode == True:
         # Configure windows; trackbar adjusts blending ratio of rgb/depth
         leftWindowName = "left"
         rightWindowName = "right"
+        centerWindowName = "center"
         depthWindowName = "depth"
         dispWindowName = "disp"
 
         cv2.namedWindow(leftWindowName)
         cv2.namedWindow(rightWindowName)
+        cv2.namedWindow(centerWindowName)
         cv2.namedWindow(depthWindowName)
         cv2.namedWindow(dispWindowName)
 
-        vis = o3d.visualization.Visualizer()
-        vis.create_window("[DepthAI] Open3D integration demo", 960, 540)
+        # vis = o3d.visualization.Visualizer()
+        # vis.create_window("[DepthAI] Open3D integration demo", 960, 540)
 
-        vis.add_geometry(pcl)
-        origin = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0, 0, 0])
-        vis.add_geometry(origin)
-        ctr = vis.get_view_control()
-        ctr.set_zoom(0.3)
-        # ctr.camera_local_rotate()
+        # vis.add_geometry(pcl)
+        # origin = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0, 0, 0])
+        # vis.add_geometry(origin)
+        # ctr = vis.get_view_control()
+        # ctr.set_zoom(0.3)
+        # # ctr.camera_local_rotate()
         # ctr.camera_local_translate()
 
 
-    R_camera_to_world = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]).astype(np.float64)
+    R_camera_to_world = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]).astype(float)
 
-    while True:
+    while not rospy.is_shutdown():
         latestPacket = {}
         latestPacket["left"] = None
         latestPacket["right"] = None
+        latestPacket["center"] = None
         latestPacket["depth"] = None
         latestPacket["disp"] = None
-        latestPacket["pcl"] = None
+        # latestPacket["pcl"] = None
 
         stamp = rospy.Time.now()
         left_cam_info_msg.header.stamp = stamp
         right_cam_info_msg.header.stamp = stamp
 
-        queueEvents = device.getQueueEvents(("left", "right", "depth", "disp", "pcl"))
+        queueEvents = device.getQueueEvents(("left", "right", "center", "depth", "disp"))
         for queueName in queueEvents:
             packets = device.getOutputQueue(queueName).tryGetAll()
             if len(packets) > 0:
                 latestPacket[queueName] = packets[-1]
 
-        if latestPacket["pcl"] is not None:
+        # if latestPacket["pcl"] is not None:
             # framePcl = latestPacket["pcl"].getFirstLayerFp16()
             # pcl_data = np.array(framePcl).reshape(1, 3, resolution[1], resolution[0])
             # pcl_data = pcl_data.reshape(3, -1).T.astype(np.float64) / 1000.0
             
-            pcl_frame: dai.ImgFrame = latestPacket['pcl']
-            pcl_data = pcl_frame.getFrame()
+            # pcl_frame: dai.ImgFrame = latestPacket['pcl']
+            # pcl_data = pcl_frame.getFrame()
 
-            pcl_arr = pcl_data.view(np.float32).reshape((pcl_frame.getHeight() * pcl_frame.getWidth(), 3))
+            # pcl_arr = pcl_data.view(float).reshape((pcl_frame.getHeight() * pcl_frame.getWidth(), 3))
             # print(f"Frame: {pcl_frame.getWidth()},{pcl_frame.getHeight()},{pcl_frame.getType()}; Arr: {pcl_arr.shape}")
 
             # pcl_arr = pcl_data.view(np.float32).reshape((pcl_frame.getHeight() * pcl_frame.getWidth(), 3))
@@ -401,7 +430,7 @@ with device:
             # colors = msgs['rgb'].getCvFrame()[..., ::-1] # BGR to RGB
             # print(f"{pcl_arr.shape}: {pcl_frame.getHeight()} * {pcl_frame.getWidth()} = {pcl_frame.getHeight() * pcl_frame.getWidth()}")
 
-            pcl_actual = pcl_converter.visualize_pcl(pcl_arr)
+            # pcl_actual = pcl_converter.visualize_pcl(pcl_arr)
 
 
             # print(pcl_arr.reshape(-1, 3).shape)
@@ -412,11 +441,11 @@ with device:
             # viewer.log_image("Color", colors)
 
 
-            pcl_msg = orh.o3dpc_to_rospc(pcl_actual, 'right_camera', stamp)
-            pcl2_pub.publish(pcl_msg)
+            # pcl_msg = orh.o3dpc_to_rospc(pcl_actual, 'right_camera', stamp)
+            # pcl2_pub.publish(pcl_msg)
 
-            if debugMode == True:
-                pcl_converter.visualize_pcd()
+            # if debugMode == True:
+            #     pcl_converter.visualize_pcd()
             
         if latestPacket["left"] is not None:
             frameLeft = latestPacket["left"].getCvFrame()
@@ -443,6 +472,19 @@ with device:
             right_img_compressed.header.stamp = stamp
             right_img_compressed.data = np.array(cv2.imencode('.jpg', frameRight)[1]).tobytes()
             right_compressed_pub.publish(right_img_compressed)
+
+        if latestPacket["center"] is not None:
+            frameCenter = latestPacket["center"].getCvFrame()
+            if debugMode == True:
+                cv2.imshow(centerWindowName, frameCenter)
+
+            center_img_msg.header.stamp = stamp
+            # center_cam_pub.publish(right_cam_info_msg)
+            center_img_pub.publish(br.cv2_to_imgmsg(frameCenter, encoding="bgr8"))
+
+            center_img_compressed.header.stamp = stamp
+            center_img_compressed.data = np.array(cv2.imencode('.jpg', frameCenter)[1]).tobytes()
+            center_compressed_pub.publish(center_img_compressed)
 
         if latestPacket["depth"] is not None:
             frameDepth = latestPacket["depth"].getCvFrame()
