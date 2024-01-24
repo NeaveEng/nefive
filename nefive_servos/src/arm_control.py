@@ -35,7 +35,6 @@ servoDetails = ServoDetails()
 
 # Previous value for the trigger, used for debouncing
 trigger_prev = False
-lerpingInProgress = False
 
 axesDict = {
     "lx": 0,
@@ -104,6 +103,7 @@ joint_dict = {
 
 # stores the current positions of all the servos
 angles = servoDetails.home_positions
+rightHandOpen = True
 
 # print(angles)
 # getch()
@@ -185,12 +185,21 @@ rightHandAngleLimits = [servos.positionToAngle(servoDetails.servo_limits[115][0]
                         servos.positionToAngle(servoDetails.servo_limits[115][1])]
 
 def joy_callback(data: Joy):
-    global angles, trigger_prev, lerpingInProgress, leftButtonPrevious, rightButtonPrevious, leftHandOpen, rightHandOpen
-    if lerpingInProgress == True:
-        # print("lerping in progress")
-        return
+    global angles, trigger_prev, leftButtonPrevious, rightButtonPrevious, leftHandOpen, rightHandOpen
+    # if servoslerpingInProgress == True:
+    #     # print("lerping in progress")
+    #     return
     
+    rightStickButton = data.buttons[buttonsDict["RightStick"]]
+    
+    rightPressed = False
+    if rightStickButton != leftButtonPrevious:
+        rightButtonPrevious = rightStickButton
+        rightPressed = rightStickButton
     # positions = start_positions = servos.readAllAngles()
+
+    while servos.lerpingInProgress == True:
+        rospy.sleep(0.2)
 
     if(data.buttons[buttonsDict["ToggleUp"]] == 1):
         # Arm control engaged
@@ -221,7 +230,6 @@ def joy_callback(data: Joy):
         leftControlArm = data.buttons[buttonsDict["ToggleUp"]]
         leftControlHand = data.buttons[buttonsDict["S1"]]
 
-        rightStickButton = data.buttons[buttonsDict["RightStick"]]
         rightControlArm = data.buttons[buttonsDict["ToggleUp"]]
         rightControlHand = data.buttons[buttonsDict["S2"]]
         
@@ -230,10 +238,7 @@ def joy_callback(data: Joy):
             leftButtonPrevious = leftStickButton
             leftPressed = leftStickButton
 
-        rightPressed = False
-        if rightStickButton != leftButtonPrevious:
-            rightButtonPrevious = rightStickButton
-            rightPressed = rightStickButton
+
 
         # check if the trigger has been pulled
         trigger_pulled = False
@@ -241,17 +246,31 @@ def joy_callback(data: Joy):
             trigger_prev = trigger_curr
             trigger_pulled = trigger_curr
         
-        if trigger_pulled:
-            rospy.loginfo(angles)
+        # if trigger_pulled:
+        #     rospy.loginfo(f'{angles}')
 
         start_angles = angles
+
+        if trigger_pulled == True:
+            if rightHandOpen == True:
+                print("Closing right hand")
+                servos.setCurrentGoal(115, -100)
+                angles[115] = rightHandAngleLimits[0]
+                rightHandOpen = False
+            # close hand
+            else:
+                print("Opening right hand")
+                servos.setCurrentGoal(115, 100)
+                angles[115] = rightHandAngleLimits[1]
+                rightHandOpen = True
+
 
         # We're in left arm control mode, check if arm/hand control needed
         if(leftControlArm == 1):
             if(leftControlHand == 0):
                 # control the arm, not the wrist
                 if leftStickButton == 0:
-                    angles[joint_dict["left_foreaft"]] -= leftAxisY 
+                    angles[joint_dict["left_foreaft"]] += leftAxisY 
                 else:
                     angles[joint_dict["left_elbow"]] -= leftAxisY
 
@@ -279,7 +298,7 @@ def joy_callback(data: Joy):
             if(rightControlHand == 0):                           
                 if(rightStickButton == 0):
                     # positions.servo1 -= leftAxisY 
-                    angles[joint_dict["right_foreaft"]] -= rightAxisY 
+                    angles[joint_dict["right_foreaft"]] += rightAxisY 
                 else:
                     angles[joint_dict["right_elbow"]] -= rightAxisY
 
@@ -289,13 +308,13 @@ def joy_callback(data: Joy):
             if(rightControlHand == 1):
                 # controlling the wrist/hand      
                 # pan
-                angles[joint_dict["right_wrist_pan"]] += rightAxisX
+                angles[joint_dict["right_wrist_pan"]] -= rightAxisX
                 # tilt
                 angles[joint_dict["right_wrist_tilt"]] += rightAxisY
 
                 if rightStickButton == 0:
                     # roll
-                    angles[joint_dict["right_wrist_rotate"]] += rightAxisZ
+                    angles[joint_dict["right_wrist_rotate"]] -= rightAxisZ
                 else:
                     newRightAngle = angles[joint_dict["right_hand"]] - rightAxisZ
                     if (newRightAngle >= rightHandAngleLimits[0]) & (newRightAngle <= rightHandAngleLimits[1]):
@@ -321,35 +340,40 @@ def joy_callback(data: Joy):
 
     
     if(data.buttons[buttonsDict["ToggleDown"]] == 1):
-        # print(data.axes[3], data.axes[4])
-        pan_diff = scaleinput(data.axes[3], False, 0.25)
-        tilt_diff = scaleinput(data.axes[4], True, 0.25)            
-        roll_diff = scaleinput(data.axes[5], True, 0.5)
-    
-        pan = angles[116] + pan_diff
-        tilt = angles[117] + tilt_diff
-        roll = angles[118] + roll_diff
-
-        if(pan > pan_max):
-            pan = pan_max
-        elif(pan < pan_min):
-            pan = pan_min
-
-        if(tilt > tilt_max):
-            tilt = tilt_max
-        elif(tilt < tilt_min):
-            tilt = tilt_min
-
-        if(roll > roll_max):
-            roll = roll_max
-        elif(roll < roll_min):
-            roll = roll_min
-
+        if rightPressed:
+            angles[pan_servo] = pan = 0
+            angles[tilt_servo] = tilt = 0
+            angles[roll_servo] = roll = 0
+        else:
+            # print(data.axes[3], data.axes[4])
+            pan_diff = scaleinput(data.axes[3], False, 0.25)
+            tilt_diff = scaleinput(data.axes[4], True, 0.25)            
+            roll_diff = scaleinput(data.axes[5], True, 0.5)
         
-        angles[pan_servo] = pan
-        angles[tilt_servo] = tilt
-        angles[roll_servo] = roll
-        
+            pan = angles[116] - pan_diff
+            tilt = angles[117] + tilt_diff
+            roll = angles[118] + roll_diff
+
+            if(pan > pan_max):
+                pan = pan_max
+            elif(pan < pan_min):
+                pan = pan_min
+
+            if(tilt > tilt_max):
+                tilt = tilt_max
+            elif(tilt < tilt_min):
+                tilt = tilt_min
+
+            if(roll > roll_max):
+                roll = roll_max
+            elif(roll < roll_min):
+                roll = roll_min
+
+            
+            angles[pan_servo] = pan
+            angles[tilt_servo] = tilt
+            angles[roll_servo] = roll
+            
         # print(pan, tilt, roll)
     
     servos.setAllAngles(angles)
@@ -358,7 +382,7 @@ def joy_callback(data: Joy):
 def arm_callback(data: arm_servos):
     global angles, lerpingInProgress
 
-    if lerpingInProgress == True:
+    if servos.lerpingInProgress == True:
         time.sleep(0.5)
 
     #do some stuff
@@ -372,9 +396,7 @@ def arm_callback(data: arm_servos):
         angles[joint_dict["left_wrist_rotate"]] = data.wrist_rotate
         angles[joint_dict["left_wrist_tilt"]] = data.wrist_tilt
 
-        lerpingInProgress = True
         servos.lerpToAngles(angles, 2)
-        lerpingInProgress = False
 
         return
                
@@ -387,9 +409,7 @@ def arm_callback(data: arm_servos):
         angles[joint_dict["right_wrist_rotate"]] = data.wrist_rotate
         angles[joint_dict["right_wrist_tilt"]] = data.wrist_tilt
 
-        lerpingInProgress = True
         servos.lerpToAngles(angles, 2)
-        lerpingInProgress = False
 
         return
     else:
@@ -399,7 +419,7 @@ def arm_callback(data: arm_servos):
 def hand_callback(data: servo_position):
     global angles
     print(f"hand msg: {data}")
-    while lerpingInProgress == True:
+    while servos.lerpingInProgress == True:
         time.sleep(0.5)
 
     servos.setPosition(data.id, data.goal_pos)

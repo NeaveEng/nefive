@@ -85,6 +85,8 @@ class dynamixel_utils:
     portHandler = None
     packetHandler = None
 
+    lerpingInProgress = False
+
     def __init__(self, serial, baud):
         self.portHandler = PortHandler(serial)
         self.packetHandler = PacketHandler(self.PROTOCOL_VERSION)
@@ -260,7 +262,7 @@ class dynamixel_utils:
                 # return None
 
             current = self.groupSyncReadCurrent.getData(servo_id, self.ADDR_PRESENT_CURRENT, 2)
-            present_effort[servo_id] = (current / 1000) * servo_torque_constants[servo_id]
+            present_effort[servo_id] = (current / 1000) * self.servoDetails.servo_torque_constants[servo_id]
 
         return present_effort
      
@@ -588,6 +590,8 @@ class dynamixel_utils:
 
 
     def lerpToRadians(self, radians, lerp_time):
+        self.lerpingInProgress = True
+
         start_radians = self.readAllRadians()
         interval = lerp_time / 100
         print(f"Lerp interval: {interval}")
@@ -603,10 +607,14 @@ class dynamixel_utils:
             # print(new_radians)
             
             time.sleep(interval)
+        
+        self.lerpingInProgress = False
 
+    def lerpToAngles(self, angles, lerp_time, start_angles = None):
+        self.lerpingInProgress = True
+        if(start_angles == None):
+            start_angles = self.readAllAngles()
 
-    def lerpToAngles(self, angles, lerp_time):
-        start_angles = self.readAllAngles()
         interval = lerp_time / 100
         print(f"Lerp interval: {interval}")
         for i in range(100):
@@ -621,9 +629,12 @@ class dynamixel_utils:
             # print(new_angles)
             
             time.sleep(interval)
+        
+        self.lerpingInProgress = False
 
 
     def lerpToPositions(self, positions, lerp_time):
+        self.lerpingInProgress = True
         start_positions = self.readAllPositions()
         interval = lerp_time / 100
         print(f"Lerp interval: {interval}")
@@ -638,6 +649,7 @@ class dynamixel_utils:
             self.setAllPositions(new_positions)
             
             time.sleep(interval)
+        self.lerpingInProgress = False
 
     # Read current positions for all servos and move home
     def moveToHome(self):

@@ -124,14 +124,23 @@ def createMsg(arm, positions):
     return msg
 
 
+# Previous values
+# left_ready_to_grip = {100: -4.29436801150441, 101: 64.2782050036639, 102: 0.9978429514914744, 103: -85.94753611288965, 104: 4.955641083493829, 105: -5.396310194730758, 106: -64.60023140214383, 107: -13.29 } 
+# left_lifted = {100: -4.29436801150441, 101: 66.95306419961155, 102: 0.9978429514914744, 103: 20.227195417359468, 104: 4.955641083493829, 105: -5.396310194730758, 106: -64.60023140214383, 107: -13.29 }
+# left_held_at_rest = {100: -3.34, 101: -89.75, 102: -0.38, 103: 34.23, 104: 4.17, 105: -2.20, 106: -69.08, 107: -28.06} 
 
-left_ready_to_grip = {100: -4.29436801150441, 101: 64.2782050036639, 102: 0.9978429514914744, 103: -85.94753611288965, 104: 4.955641083493829, 105: -5.396310194730758, 106: -64.60023140214383, 107: -13.29 } 
-left_lifted = {100: -4.29436801150441, 101: 66.95306419961155, 102: 0.9978429514914744, 103: 20.227195417359468, 104: 4.955641083493829, 105: -5.396310194730758, 106: -64.60023140214383, 107: -13.29 }
-left_held_at_rest = {100: -3.34, 101: -89.75, 102: -0.38, 103: 34.23, 104: 4.17, 105: -2.20, 106: -69.08, 107: -28.06} 
+# right_ready_to_grip = {108: 2.9693499980121842, 109: -67.74518650181591, 110: -10.91413763143122, 111: 74.63416039779781, 112: 3.2878335943818087, 113: -3.6549706425517794, 114: 63.84032794177532, 115: 35.83 }
+# right_lifted = {108: 2.896395347043871, 109: -65.48065266914665, 110: -10.91413763143122, 111: -9.95228489652277, 112: 3.2878335943818087, 113: -3.6549706425517794, 114: 63.81009735442698, 115: 35.83}
+# right_held_at_rest = {108: -4.33, 109: 80.26, 110: -6.15, 111: -36.55, 112: -6.09, 113: 2.9, 114: 67.11, 115: 35.83}
 
-right_ready_to_grip = {108: 2.9693499980121842, 109: -67.74518650181591, 110: -10.91413763143122, 111: 74.63416039779781, 112: 3.2878335943818087, 113: -3.6549706425517794, 114: 63.84032794177532, 115: 35.83 }
-right_lifted = {108: 2.896395347043871, 109: -65.48065266914665, 110: -10.91413763143122, 111: -9.95228489652277, 112: 3.2878335943818087, 113: -3.6549706425517794, 114: 63.81009735442698, 115: 35.83}
-right_held_at_rest = {108: -4.33, 109: 80.26, 110: -6.15, 111: -36.55, 112: -6.09, 113: 2.9, 114: 67.11, 115: 35.83}
+left_held_at_rest =  {100: 5.19, 101: 42.93, 102: 8.18, 103: 35.22, 104: 1.94, 105: -4.84, 106: -15.65}
+right_held_at_rest = {108: -6.6, 109: -22.72, 110: -2.46, 111: -37.05, 112: 0.26, 113: -9.77, 114: 21.38}
+
+left_ready_to_grip = {100: -5.28, 101: -51.44, 102: 8.18, 103: -87.45, 104: 1.94, 105: -4.84, 106: -47.41} 
+right_ready_to_grip = {108: -4.84, 109: 60.95, 110: -2.19, 111: 79.68, 112: -0.77, 113: -5.35, 114: 61.63}
+
+left_lifted = {100: -5.28, 101: -52.76, 102: 8.18, 103: -45.95, 104: 1.94, 105: -8.29, 106: -51.75} 
+right_lifted = {108: -4.84, 109: 61.22, 110: -2.19, 111: 39.07, 112: -0.77, 113: -5.35, 114: 61.63}
 
 leftLowered = createMsg(0, left_ready_to_grip)
 leftRaised  = createMsg(0, left_lifted)
@@ -156,9 +165,9 @@ def InitServos():
     global leftArmState, leftArmTargetState, rightArmState, rightArmTargetState
 
     # Set servos to current-based position mode
-    servos.setOperatingModes(servos.CURRENT_BASED_POSITION_MODE)
-    servos.setAllCurrentLimits(servoDetails.current_limits)
-    servos.setAllCurrentGoals(servoDetails.current_goals)
+    # servos.setOperatingModes(servos.CURRENT_BASED_POSITION_MODE)
+    # servos.setAllCurrentLimits(servoDetails.current_limits)
+    # servos.setAllCurrentGoals(servoDetails.current_goals)
 
     servos.enableAllServos()
     servos.lerpToAngles(angles, 2)
@@ -279,8 +288,8 @@ def joy_callback(data: Joy):
 
     if leftPressed == True:
         print("Left pressed this frame!")
-    elif leftHeld:
-        print("Left held down!")
+    # elif leftHeld:
+    #     print("Left held down!")
 
     rightPressed = False
     rightHeld = False
@@ -293,8 +302,8 @@ def joy_callback(data: Joy):
 
     if rightPressed == True:
         print("Right pressed this frame!")
-    elif rightHeld:
-        print("Right held down!")
+    # elif rightHeld:
+    #     print("Right held down!")
 
     # check if the trigger has been pulled
     trigger_pulled = False
@@ -368,7 +377,7 @@ def joy_callback(data: Joy):
 
 
     # head control using right stick
-    pan_diff = scaleinput(data.axes[3], False, 0.25)
+    pan_diff = scaleinput(data.axes[3], True, 0.25)
     tilt_diff = scaleinput(data.axes[4], True, 0.25)            
     roll_diff = scaleinput(data.axes[5], True, 0.5)
 
@@ -398,11 +407,12 @@ def joy_callback(data: Joy):
     
     # print(pan, tilt, roll)
     
-    servos.setAllAngles(angles)
+    if(servos.lerpingInProgress == False):
+        servos.setAllAngles(angles)
 
 
 def armControl(data: arm_servos):
-    global angles, lerpingInProgress
+    global angles
 
     print(f"arm msg: {data}")
     if data.arm == 0: # left arm
@@ -469,7 +479,7 @@ def listener():
     rospy.init_node('dynamixel_arm_driver', anonymous=True)
     rospy.Subscriber('joy', Joy, joy_callback)
     # rospy.Subscriber('nefive_servos/arms', arm_servos, arm_callback)
-    # rospy.Subscriber('nefive_servos/servo_position', servo_position, hand_callback)
+    rospy.Subscriber('nefive_servos/servo_position', servo_position, hand_callback)
 
     rospy.spin()
 
