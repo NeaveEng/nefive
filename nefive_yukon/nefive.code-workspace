@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"name": "Pico (W) Remote Workspace",
+			"uri": "pico:"
+		}
+	],
+	"settings": {
+		"python.languageServer": "Pylance",
+		"micropico.autoConnect": false,
+		"micropico.manualComDevice": "/dev/yukon"
+	}
+}

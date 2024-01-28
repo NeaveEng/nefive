@@ -1,4 +1,7 @@
-import math
+import time
+from message_types import MessageTypes
+from machine import UART
+import ustruct
 from pimoroni_yukon import Yukon
 from pimoroni_yukon import SLOT1 as M1
 from pimoroni_yukon import SLOT2 as SERVOS
@@ -9,14 +12,8 @@ from pimoroni_yukon import SLOT6 as M4
 from pimoroni_yukon.modules import BigMotorModule, QuadServoDirectModule, LEDStripModule
 from pimoroni_yukon.timing import ticks_ms, ticks_add
 from servo import ServoCluster, Calibration
-from machine import UART
-import time
-import uros
-from std_msgs import ColorRGBA #message object ColorRGBA
-import gc
 
-
-gc.collect()
+from message_types import MessageTypes
 
 """
 Drive a single motor from a Big Motor + Encoder Module connected to Slot1.
@@ -54,11 +51,9 @@ RAINBOW_VAL = 1.0                       # The value (brightness) of the rainbow
 
 MOTOR_SLOTS = [ M1, M2, M3, M4 ]
 
-node = None
-msg = None
+message_types = MessageTypes()
 
 # 0: Front Left, 1: Front Right, 2: Rear Right, 3: Rear Left
-
 # Motor Directions: 0: Normal, 1: Reversed
 motor_directions = [1, 1, 1, 0]
 encoder_directions = [1, 0, 0, 0]
@@ -71,31 +66,18 @@ servos      = None
 hue_offset = 0
 
 servo_module = None
+serial_port = None
 
 # Variables
 yukon = Yukon()                         # Create a new Yukon object
 phase_offset = 0                        # The offset used to animate the motor
 
-# import uros
-# from std_msgs import ColorRGBA #message object ColorRGBA
+ros_time = [-1, -1]                     # ROS time, in [seconds, nsec since seconds]       
 
-# while True:
-#     node.publish('Colorsh',msg) #publish data to node Colorsh
-#     sleep(1)
-
-# Function for applying a rainbow pattern to an LED strip
-def update_rainbow(strip, offset):
-    for led in range(strip.num_leds()):
-        # Calculate a hue for the LED based on its position in the strip and the offset
-        hue = (led / strip.num_leds()) + offset
-        strip.set_hsv(led, hue, RAINBOW_SAT, RAINBOW_VAL)
-
-    # Send the new colours to the LED strip
-    strip.update()
-
-
-def init_all_the_things():
-    global motors, led_strip, servos, servo_module, serial_port, node, msg
+def initialise():
+    global motors, led_strip, servos, servo_module, serial_port
+    
+    # Configure the motor and encoder modules
     for i in range(4):
         print("Registering motor: ", i)
         motors[i] = BigMotorModule(encoder_pio=ENCODER_PIO,    # Create a BigMotorModule object, with details of the encoder
@@ -105,12 +87,12 @@ def init_all_the_things():
                         init_encoder=True)
         yukon.register_with_slot(motors[i], MOTOR_SLOTS[i])      # Register the BigMotorModule object with the slot
     
-        
-    
-    # init_servos=False means not all pins will be assigned to servos
+    # Configure the servo module, double duty as UART
+    # init_servos=False means not all pins will be assigned to servos to be used as UART
     servo_module = QuadServoDirectModule(init_servos=False)        # Create a QuadServoDirectModule object
     yukon.register_with_slot(servo_module, SERVOS)  # Register the QuadServoDirectModule object with the slot
 
+    # Configure the LED strip module
     led_strip = LEDStripModule(STRIP_TYPE,     # Create a LEDStripModule object, with the details of the attached strip(s)
                                 STRIP_PIO,
                                 STRIP_SM,
@@ -119,188 +101,162 @@ def init_all_the_things():
             
     yukon.register_with_slot(led_strip, LEDS)  # Register the QuadServoDirectModule object with the slot
 
-    yukon.verify_and_initialise()               # Verify that a BigMotorModule is attached to Yukon, and initialise it
-
+    yukon.verify_and_initialise()               # Verify that all modules are connected and initialise them
     yukon.enable_main_output()                  # Turn on power to the module slots
-    
-    led_strip.enable()
-        
-    # UARTpins SERVOS.FAST1, SERVOS.FAST2, 
 
-    msg=ColorRGBA() #msg object init
-    msg.r=1 #values to variables assigned
-    msg.g=3
-    msg.b=4
-    msg.a=1
-    
-    node=uros.NodeHandle(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2) #node initialized, for tx2/rx2 and 115200 baudrate
-    # serial_port = UART(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2)
-    # serial_port.init(115200, bits=8, parity=None, stop=1)
-
-    servo_pins = [SERVOS.FAST3, SERVOS.FAST4]
-    servos = ServoCluster(SERVO_CLUSTER_PIO, SERVO_CLUSTER_SM, servo_pins)
-    servos.enable_all()
-    print(servos.calibration(0))
-
-    cal = Calibration()
-    cal.apply_two_pairs(1000, 2000, 0, 1)
-    servos.calibration(0, cal)
-    print(servos.calibration(0))
-    
-    print(servos)
-    # servos.calibration(1)
-    
+    # Enable the motor modules
     for i in range(4):
         print("Enabling motor: ", i)
         motors[i].enable()
         motors[i].motor.direction(motor_directions[i])
         motors[i].encoder.direction(encoder_directions[i])
-
-                            # Enable the motor driver on the BigMotorModule
-
-
-def test_motors():
-    run_loop = True
     
-    i = 0
-
-    # Loop until the BOOT/USER button is pressed
-    while run_loop:
-        current_time = ticks_ms()                   # Record the start time of the program loop   
-
-        if yukon.is_boot_pressed():
-            motors[i].motor.speed(0)
-            if i == 3:
-                # run_loop = False
-                i = 0
-            else:
-                i = i + 1
-
-            while yukon.is_boot_pressed():
-                time.sleep(0.01)
-
-#        phase = phase_offset * math.pi * 2
-#        speed = math.sin(phase) * SPEED_EXTENT
-        speed = 0.2
-        
-        encoders[i] = motors[i].encoder.capture()                  # Capture the state of the encoder
-        motors[i].motor.speed(speed)
-        print(f"Motor: {i}, Speed: {speed}, Encoder: {encoders[i].revolutions_per_second}")             
-            
-        # Advance the current time by a number of seconds
-        current_time = ticks_add(current_time, int(1000 / UPDATES))
-
-        # Monitor sensors until the current time is reached, recording the min, max, and average for each
-        # This approach accounts for the updates taking a non-zero amount of time to complete
-        yukon.monitor_until_ms(current_time)
-
-def run_motors_forwards():
-    global motors, encoders
-
-    for i in range(4):
-        speed = 0.2
-        encoders[i] = motors[i].encoder.capture()                  # Capture the state of the encoder
-        motors[i].motor.speed(speed)
-        # print(f"Motor {i} is not enabled: {motors[i].read_fault()}")
-
-    # print(f"Motor: {i}, Speed: {speed}, Encoder: {encoders[i].revolutions_per_second}")             
-    print(f"{encoders[0].revolutions_per_second}, {encoders[1].revolutions_per_second}, {encoders[2].revolutions_per_second}, {encoders[3].revolutions_per_second}")  
-
-
-def test_actuator():
-    loop_min = 0.25
-    loop_max = 0.9
-    loop_current = None
-    loop_direction = 1
+    # Enable the LED strip module
+    led_strip.enable()
     
-    loop_diff = loop_max - loop_min
-    loop_step = 1
-    loop_unit = loop_diff / 100
+    # Enable the servo module, start with UART
+    serial_port = UART(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2, rxbuf=1024) #node initialized, for tx2/rx2 and 115200 baudrate
+    serial_port.init(115200, bits=8, parity=None, stop=1)
+    serial_port.read()
 
-    print("up")
-    for i in range(0, 100, 1):
-        position_voltage = servo_module.read_adc1(5)
-        position = 1 - position_voltage / 3.3
-        print(f"Position: {position}, current_loop: {i}, value: {servos.value(0)}")
+    servo_pins = [SERVOS.FAST3, SERVOS.FAST4]
+    servos = ServoCluster(SERVO_CLUSTER_PIO, SERVO_CLUSTER_SM, servo_pins)
+    servos.enable_all()
 
-        servos.value(0, i * loop_unit + loop_min)
-        time.sleep(0.2)
+    # Configure the servo for the linear actuator
+    cal = Calibration()
+    cal.apply_two_pairs(1000, 2000, 0, 1)
+    servos.calibration(0, cal)
 
-    print("down")
-    for i in range(100, 0, -1):
-        position_voltage = servo_module.read_adc1(5)
-        position = 1 - position_voltage / 3.3
-        print(f"Position: {position}, current_loop: {i}, value: {servos.value(0)}")
 
-        servos.value(0, i * loop_unit + loop_min)
-        time.sleep(0.2)
+def send_motors():
+    data = (ticks_ms()/1000, encoders[0].revolutions_per_second, encoders[1].revolutions_per_second, encoders[2].revolutions_per_second, encoders[3].revolutions_per_second)  # A tuple of data
+    packed_data = ustruct.pack('fffff', *data)  # Pack the data into a binary format
+    serial_port.write(int(0).to_bytes(1, 'big'))  # Send Motor data
+    serial_port.write(packed_data)  # Send the packed data
+
+
+def send_imu():
+    data = [0.1, 0.2, 0.3,
+            1.1, 1.2, 1.3,
+            2.1, 2.2, 2.3]  # A tuple of data
+    packed_data = ustruct.pack('fffffffff', *data)  # Pack the data into a binary format
+    serial_port.write(int(1).to_bytes(1, 'big'))  # Send Motor data
+    serial_port.write(packed_data)  # Send the packed data
+
+
+def read_until_newline(serial_port):
+    result = bytearray()
+    while True:
+        char = serial_port.read(1)
+        if char == None:
+            return None
+            continue
+        if char == b'\n':
+            break
+        result.extend(char)
+    return bytes(result)
 
 # Wrap the code in a try block, to catch any exceptions (including KeyboardInterrupt)
 try:
-    init_all_the_things()
+    initialise()
 
-    position_voltage = servo_module.read_adc1(5)
-    loop_current = position = 1 - position_voltage / 3.3
-    print("Start position: ", position)
+    last_publish_motors = ticks_ms()
+    publish_motors_interval = 50
 
-    # servos.value(0, 0)
-    # time.sleep(10)
+    last_publish_imu = ticks_ms()
+    publish_imu_interval = 10
 
-    # position_voltage = servo_module.read_adc1(5)
-    # loop_current = position = 1 - position_voltage / 3.3
-    # print("Lowest position: ", position)
-
-    # servos.value(0, 1)
-    # time.sleep(10)
-
-    # position_voltage = servo_module.read_adc1(5)
-    # loop_current = position = 1 - position_voltage / 3.3
-    # print("Highest position: ", position)
-
-
-    last_publish = ticks_ms()
-    publish_interval = 1000
-
-    # test_motors()
+    loop_ended = ticks_ms()
+    
+    # Clear the buffer
+    read_until_newline(serial_port)
 
     while True:
         current_time = ticks_ms()                   # Record the start time of the program loop    
-        # update_rainbow(led_strip.strip, hue_offset)
+        delta_time = current_time - loop_ended
 
-        # # Advance the hue offset, wrapping if it exceeds 1.0
-        # hue_offset += SPEED
-        # if hue_offset >= 1.0:
-        #     hue_offset -= 1.0          
-
+        # If we have a valid ROS time, add the current time to it
+        # if ros_time[0] is not -1:
+        #     ros_time[0] = ros_time[0] + int(delta_time / 1000)
+        #     ros_time[1] = ros_time[1] + int(delta_time * 1000)
+        
         for led in range(24):
             led_strip.strip.set_rgb(led, 255, 255, 255)
-
 
         for led in range(24, 32):
             led_strip.strip.set_rgb(led, 0, 255, 0)
 
         led_strip.strip.update()
 
+        if serial_port is not None:
+            in_waiting = serial_port.any()
+            if in_waiting > 0:           
+                data = read_until_newline(serial_port) 
+                # print(f"Waiting: {in_waiting}")
+                if data is None:
+                    serial_port.read()
+                    continue
 
-        if msg is not None:
-            if current_time > last_publish + publish_interval:
-                #print(msg.r, msg.g, msg.b, msg.a)
-                node.publish('Colorsh',msg)
-                #serial_port.write(f"{yukon.read_input_voltage(5)}\n")
-                last_publish = current_time
+                try:
 
-        run_motors_forwards()
+                    # Read the first four bytes, this will be an int that represents the next packet of data
+                    index = ustruct.unpack('I', data[0:4])[0]
 
+                    # # if index not in message_types.message_ids:
+                    # if index not in message_types.message_ids.values():
+                    #     print(f"Unknown message type: {index}")
+                    #     serial_port.read()
+                    #     continue
+                    # else:
+                    #     print(f"Message type: {index}")
+
+                    print(index)
+                    # Read the data for the packet
+                    if index == message_types.message_ids['time']:
+                        fmt = message_types.message_types[index]['format']
+                        size = message_types.message_types[index]['size']
+                        new_ros_time = ustruct.unpack(fmt, data[4: 4+size])
+                        # print(f"New time: {new_ros_time}, old time: {ros_time}")
+                        ros_time = new_ros_time
+
+                    if index == message_types.message_ids['motors']:
+                        fmt = message_types.message_types[index]['format']
+                        size = message_types.message_types[index]['size']
+                        motor_msg = ustruct.unpack(fmt, data[4: 4+size])
+                        print(f"motors: {motor_msg}")
+                        motors[0].motor.speed(motor_msg[2])
+                        motors[1].motor.speed(motor_msg[3])
+                        motors[2].motor.speed(motor_msg[4])
+                        motors[3].motor.speed(motor_msg[5])
+
+
+
+                except ValueError as vs:
+                    print(f"ValueError: {vs}")
+                    continue
+                    
+
+
+        # if current_time > last_publish_motors + publish_motors_interval:
+        #     send_motors()
+        #     last_publish_motors = current_time
+
+        # if current_time > last_publish_imu + publish_imu_interval:
+        #     send_imu()
+        #     last_publish_imu = current_time
 
         # print(servos.servos[0].calbration())
         # Advance the current time by a number of seconds
-        current_time = ticks_add(current_time, int(1000 / UPDATES))
+        current_time = ticks_add(current_time, 5)
 
         # Monitor sensors until the current time is reached, recording the min, max, and average for each
         # This approach accounts for the updates taking a non-zero amount of time to complete
         yukon.monitor_until_ms(current_time)
 
+        loop_ended = ticks_ms()
 finally:
     # Put the board back into a safe state, regardless of how the program may have ended
-    node.shutdown()
+    # if node is not None:
+    #     node.shutdown()
     yukon.reset()
