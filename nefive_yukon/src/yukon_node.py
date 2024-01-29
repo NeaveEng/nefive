@@ -32,7 +32,7 @@ def steering(x, y, rot):
 
 def setmotors(front_left, front_right, back_left, back_right):
     ser.write(struct.pack('I', 0))
-    data = [rostime.secs, rostime.nsecs, front_right, front_left, back_left, back_right]
+    data = [rostime.secs, rostime.nsecs, back_right, back_left, front_left,front_right]
     data_packed = struct.pack('IIffff', *data)           
     print(f"Sending: {data_packed}, length: {len(data_packed)}")
     ser.write(data_packed)
@@ -62,7 +62,7 @@ def callback(data):
         front_left, front_right, back_left, back_right = steering(x, y, z)
         # print(front_left, front_right, back_left, back_right)
 
-        base_motor_speed = 0.2
+        base_motor_speed = 1
         turbo_multiplier = 1.25
 
         # Buttons are on when down so this makes sense in the physical world

@@ -14,6 +14,8 @@ from pimoroni_yukon.timing import ticks_ms, ticks_add
 from servo import ServoCluster, Calibration
 
 from message_types import MessageTypes
+from blinking import Blinking
+
 
 """
 Drive a single motor from a Big Motor + Encoder Module connected to Slot1.
@@ -52,6 +54,7 @@ RAINBOW_VAL = 1.0                       # The value (brightness) of the rainbow
 MOTOR_SLOTS = [ M1, M2, M3, M4 ]
 
 message_types = MessageTypes()
+blinking = Blinking()
 
 # 0: Front Left, 1: Front Right, 2: Rear Right, 3: Rear Left
 # Motor Directions: 0: Normal, 1: Reversed
@@ -99,6 +102,8 @@ def initialise():
                                 LEDS_PER_STRIP,
                                 BRIGHTNESS)
             
+
+    led_strip = LEDStripModule(STRIP_TYPE, STRIP_PIO, STRIP_SM, LEDS_PER_STRIP, BRIGHTNESS)
     yukon.register_with_slot(led_strip, LEDS)  # Register the QuadServoDirectModule object with the slot
 
     yukon.verify_and_initialise()               # Verify that all modules are connected and initialise them
@@ -157,6 +162,7 @@ def read_until_newline(serial_port):
         result.extend(char)
     return bytes(result)
 
+
 # Wrap the code in a try block, to catch any exceptions (including KeyboardInterrupt)
 try:
     initialise()
@@ -171,23 +177,23 @@ try:
     
     # Clear the buffer
     read_until_newline(serial_port)
+    for led in range(24, 32):
+        led_strip.strip.set_rgb(led, 0, 75, 0)
+    led_strip.strip.update()
 
     while True:
         current_time = ticks_ms()                   # Record the start time of the program loop    
         delta_time = current_time - loop_ended
 
-        # If we have a valid ROS time, add the current time to it
-        # if ros_time[0] is not -1:
-        #     ros_time[0] = ros_time[0] + int(delta_time / 1000)
-        #     ros_time[1] = ros_time[1] + int(delta_time * 1000)
-        
-        for led in range(24):
-            led_strip.strip.set_rgb(led, 255, 255, 255)
-
-        for led in range(24, 32):
-            led_strip.strip.set_rgb(led, 0, 255, 0)
-
-        led_strip.strip.update()
+        leds_to_update = blinking.update_eyelids(current_time)
+        if leds_to_update is not None:
+            # Update the LED strip
+            for led in range(24):
+                if led in leds_to_update:
+                    led_strip.strip.set_rgb(led, 150, 150, 150)
+                else:
+                    led_strip.strip.set_rgb(led, 0, 0, 0)
+            led_strip.strip.update()
 
         if serial_port is not None:
             in_waiting = serial_port.any()
@@ -235,9 +241,7 @@ try:
                 except ValueError as vs:
                     print(f"ValueError: {vs}")
                     continue
-                    
-
-
+        
         # if current_time > last_publish_motors + publish_motors_interval:
         #     send_motors()
         #     last_publish_motors = current_time
