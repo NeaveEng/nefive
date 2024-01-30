@@ -2,40 +2,39 @@ import random
 
 
 class Blinking:
-    left_eye = [[0], [1, 11], [2, 10], [3, 9], [4, 8], [5, 7], [6]]
-    right_eye = [[12], [13, 23], [14, 22], [15, 21], [16, 20], [17, 19], [18]]
+    def __init__(self):
+        self.left_eye = [[0], [1, 11], [2, 10], [3, 9], [4, 8], [5, 7], [6]]
+        self.right_eye = [[12], [13, 23], [14, 22], [15, 21], [16, 20], [17, 19], [18]]
 
-    BlinkStates = {
-        'Open'   : 0,
-        'Opening': 1,
-        'Closed' : 2,
-        'Closing': 3
-    }
+        self.BlinkStates = {
+            'Open'   : 0,
+            'Opening': 1,
+            'Closed' : 2,
+            'Closing': 3
+        }
 
-    EyeStates = {
-        'Closed'           : 0,
-        'QuarterOpen'      : 1,
-        'HalfOpen'         : 2,
-        'ThreeQuarterOpen' : 3,
-        'Open'             : 4
-    }
+        self.EyeStates = {
+            'Closed'           : 0,
+            'QuarterOpen'      : 1,
+            'HalfOpen'         : 2,
+            'ThreeQuarterOpen' : 3,
+            'Open'             : 4
+        }
 
-    eyeState = EyeStates['Closed']
-    nextEyeState = EyeStates['QuarterOpen']
+        self.eyeState = self.EyeStates['Closed']
+        self.nextEyeState = self.EyeStates['QuarterOpen']
 
-    blinkState = BlinkStates['Closed']
-    nextBlinkState = BlinkStates['Opening']
+        self.blinkState = self.BlinkStates['Closed']
+        self.nextBlinkState = self.BlinkStates['Opening']
 
-    lastBlinkAction = None
-    blinkActionInterval = 1000
-    blinkIntervalMin = 4000
-    blinkIntervalMax = 8000
-    blinkLength = 0.1
+        self.lastBlinkAction = 0
+        self.blinkActionInterval = 1000
+        self.blinkIntervalMin = 2000
+        self.blinkIntervalMax = 4000
+        self.blinkLength = 0.2
 
     def what_leds_should_be_on(self):
-        retVal = None
-
-        print(self.eyeState)
+        retVal = []
 
         if self.eyeState == self.EyeStates['Closed']:
             retVal = []
@@ -56,7 +55,7 @@ class Blinking:
         if current_time - self.lastBlinkAction > self.blinkActionInterval:
             self.lastBlinkAction = current_time
 
-            print(f"{current_time}:= blinkState: {self.blinkState}, nextBlinkState: {self.nextBlinkState}, eyeState: {self.eyeState}, nextEyeState: {self.nextEyeState}, interval: {self.blinkActionInterval}")
+            # print(f"{current_time}:= blinkState: {self.blinkState}, nextBlinkState: {self.nextBlinkState}, eyeState: {self.eyeState}, nextEyeState: {self.nextEyeState}, interval: {self.blinkActionInterval}")
 
             # First, if we're open or closed, we need to switch to the next blinking and eye states
             # Finally, we need to switch to the next eye or blinking states
