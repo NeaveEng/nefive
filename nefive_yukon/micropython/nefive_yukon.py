@@ -184,8 +184,8 @@ class NEFive:
 
     def update_mouth_leds(self):
         # 4S battery, Samgsung 25R cells
-        min_voltage = 10    #   2.5 * 4
-        max_voltage = 16.8  #   4.2 * 4
+        min_voltage = 10.25     #   2.5 * 4 + margin
+        max_voltage = 16.8      #   4.2 * 4
         self.voltage_in_avg.add(self.yukon.read_input_voltage())
 
         # Calculate the percentage of the battery remaining
@@ -195,13 +195,23 @@ class NEFive:
             led_voltage_display = int(percentage * 8) + 24
             # print(f"SOC: {int(percentage * 100)}, voltage: {voltage}, LEDs: {led_voltage_display}")
             
-            for led in range(24, 32):
-                if led < led_voltage_display:
-                    self.led_strip.strip.set_rgb(led, 0, 255, 0)
-                elif led == led_voltage_display:
-                    self.led_strip.strip.set_rgb(led, 255, 165, 0)
-                else:
-                    self.led_strip.strip.set_rgb(led, 255, 0, 0)
+            if percentage > 0:
+                for led in range(24, 32):
+                    if led < led_voltage_display:
+                        self.led_strip.strip.set_rgb(led, 0, 255, 0)
+                    elif led == led_voltage_display:
+                        self.led_strip.strip.set_rgb(led, 255, 165, 0)
+                    else:
+                        self.led_strip.strip.set_rgb(led, 255, 0, 0)
+            else:
+                # If low on power, flash all the lights
+                for led in range(32):
+                    if self.mouth_leds_on == True:
+                        self.mouth_leds_on = False
+                        self.led_strip.strip.set_rgb(led, 0, 0, 0)
+                    else:
+                        self.mouth_leds_on = True
+                        self.led_strip.strip.set_rgb(led, 255, 0, 0)
 
             self.led_strip.strip.update()
 
@@ -293,15 +303,15 @@ class NEFive:
             self.led_strip.strip.update()
 
             battery_updated = ticks_ms()
-            battery_update_interval = 1000
+            battery_update_interval = 500
 
             while True:
                 self.current_time = ticks_ms()                   # Record the start time of the program loop    
                 delta_time = self.current_time - loop_ended
 
                 self.update_eye_leds()
-                self.check_for_messages()
-                self.report_status()
+                # self.check_for_messages()
+                # self.report_status()
 
                 if self.current_time > battery_updated + battery_update_interval:
                     self.update_mouth_leds()
