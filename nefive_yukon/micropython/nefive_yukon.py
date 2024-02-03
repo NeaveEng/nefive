@@ -1,6 +1,3 @@
-from message_types import MessageTypes
-from machine import UART
-import ustruct
 from pimoroni_yukon import Yukon
 from pimoroni_yukon import SLOT1 as M1
 from pimoroni_yukon import SLOT2 as SERVOS
@@ -12,11 +9,16 @@ from pimoroni_yukon.modules import BigMotorModule, QuadServoDirectModule, LEDStr
 from pimoroni_yukon.timing import ticks_ms, ticks_add
 from servo import ServoCluster, Calibration
 
-from message_types import MessageTypes
+from nefive_msgs import Status, Motors, Imu
 from blinking import Blinking
 
 import math
 from RollingAverage import RollingAverage
+import uros
+import gc
+
+# Frees up memory in case new code is run without a reset
+gc.collect()
 
 """
 All the Yukon functionality to control NE-Five
@@ -52,7 +54,6 @@ class NEFive:
 
     MOTOR_SLOTS = [ M1, M2, M3, M4 ]
 
-    message_types = MessageTypes()
     blinking = Blinking()
 
     # 0: Front Left, 1: Front Right, 2: Rear Right, 3: Rear Left
@@ -66,6 +67,8 @@ class NEFive:
     servos      = None
 
     hue_offset = 0
+
+    uros = None
 
     servo_module = None
     serial_port = None
@@ -122,9 +125,8 @@ class NEFive:
         self.led_strip.enable()
         
         # Enable the servo module, start with UART
-        self.serial_port = UART(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2) 
-        self.serial_port.init(115200, bits=8, parity=None, stop=1)
-        self.serial_port.read()
+        self.node=uros.NodeHandle(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2) 
+        self.status = Status()
 
         self.servo_pins = [SERVOS.FAST3, SERVOS.FAST4]
         self.servos = ServoCluster(self.SERVO_CLUSTER_PIO, self.SERVO_CLUSTER_SM, self.servo_pins)
@@ -144,8 +146,8 @@ class NEFive:
                 self.encoders[3].revolutions_per_second)
         
         packed_data = ustruct.pack('fffff', *data)  
-        self.serial_port.write(int(0).to_bytes(1, 'big'))  
-        self.serial_port.write(packed_data)  
+        # self.serial_port.write(int(0).to_bytes(1, 'big'))  
+        # self.serial_port.write(packed_data)  
 
 
     # Currently sending dummy data as not yet implmented
@@ -154,8 +156,8 @@ class NEFive:
                 1.1, 1.2, 1.3,
                 2.1, 2.2, 2.3]  
         packed_data = ustruct.pack('fffffffff', *data) 
-        self.serial_port.write(int(1).to_bytes(1, 'big'))
-        self.serial_port.write(packed_data)
+        # self.serial_port.write(int(1).to_bytes(1, 'big'))
+        # self.serial_port.write(packed_data)
 
 
     def read_until_newline(self):
@@ -195,7 +197,7 @@ class NEFive:
             led_voltage_display = int(percentage * 8) + 24
             # print(f"SOC: {int(percentage * 100)}, voltage: {voltage}, LEDs: {led_voltage_display}")
             
-            if percentage > 0:
+            if percentage > 0.1:
                 for led in range(24, 32):
                     if led < led_voltage_display:
                         self.led_strip.strip.set_rgb(led, 0, 255, 0)
@@ -205,18 +207,15 @@ class NEFive:
                         self.led_strip.strip.set_rgb(led, 255, 0, 0)
             else:
                 # If low on power, flash all the lights
-                for led in range(32):
+                for led in range(24, 32):
                     if self.mouth_leds_on == True:
-                        self.mouth_leds_on = False
                         self.led_strip.strip.set_rgb(led, 0, 0, 0)
                     else:
-                        self.mouth_leds_on = True
                         self.led_strip.strip.set_rgb(led, 255, 0, 0)
+                
+                self.mouth_leds_on = not self.mouth_leds_on
 
             self.led_strip.strip.update()
-
-        else:
-            print("Battery voltage not yet stable")
 
 
     def report_status(self):
@@ -231,57 +230,18 @@ class NEFive:
         temperature = self.yukon.read_temperature()
 
         time = divmod(ticks_ms(), 1000)
-        mode = 0    # 0 is Yukon uptime, 1 is ROS time
-
-        data = [time[0], time[1], mode, voltage_in, voltage_out, current, temperature]
-
-        msg_id = self.message_types.message_ids['yukon_status']
-        msg_type = self.message_types.message_types[msg_id]
-        # print(f"msg_type: {msg_type}")
         
-        packed_data = ustruct.pack(msg_type['format'], *data)
-        self.serial_port.write(int(msg_type['id']).to_bytes(1, 'big')) 
-        self.serial_port.write(packed_data)
+        self.status.seconds = time[0]
+        self.status.nsec = time[1]
+        self.status.rostime = False
+        self.status.voltage_in = voltage_in
+        self.status.voltage_out = voltage_out
+        self.status.current = current
+        self.status.temperature = temperature
+
+        self.node.publish("/status", self.status)
 
 
-    def check_for_messages(self):
-        if self.serial_port is not None:
-                in_waiting = self.serial_port.any()
-                if in_waiting > 0:           
-                    data = self.read_until_newline() 
-                    # print(f"Waiting: {in_waiting}")
-                    if data is None:
-                        self.serial_port.read()
-                        return
-
-                    try:
-                        # Read the first four bytes, this will be an int that represents the next packet of data
-                        index = ustruct.unpack('I', data[0:4])[0]
-
-                        # Read the data for the packet
-                        if index == self.message_types.message_ids['time']:
-                            fmt = self.message_types.message_types[index]['format']
-                            size = self.message_types.message_types[index]['size']
-                            new_ros_time = ustruct.unpack(fmt, data[4: 4+size])
-                            # print(f"New time: {new_ros_time}, old time: {ros_time}")
-                            self.ros_time = new_ros_time
-                            self.ros_time_updated = millis()
-
-                        if index == self.message_types.message_ids['motors']:
-                            fmt = self.message_types.message_types[index]['format']
-                            size = self.message_types.message_types[index]['size']
-                            motor_msg = ustruct.unpack(fmt, data[4: 4+size])
-                            
-                            # print(f"motors: {motor_msg}")
-                            
-                            self.motors[0].motor.speed(motor_msg[2])
-                            self.motors[1].motor.speed(motor_msg[3])
-                            self.motors[2].motor.speed(motor_msg[4])
-                            self.motors[3].motor.speed(motor_msg[5])
-
-                    except ValueError as ve:
-                        print(f"ValueError: {ve}")
-            
     def run(self):
         # Wrap the code in a try block, to catch any exceptions (including KeyboardInterrupt)
         try:
@@ -294,16 +254,13 @@ class NEFive:
 
             loop_ended = ticks_ms()
             
-            # Clear the buffer
-            self.read_until_newline()
-
             # Set the mouth to green
             for led in range(24, 32):
                 self.led_strip.strip.set_rgb(led, 0, 75, 0)
             self.led_strip.strip.update()
 
             battery_updated = ticks_ms()
-            battery_update_interval = 500
+            battery_update_interval = 1000
 
             while True:
                 self.current_time = ticks_ms()                   # Record the start time of the program loop    
@@ -311,10 +268,11 @@ class NEFive:
 
                 self.update_eye_leds()
                 # self.check_for_messages()
-                # self.report_status()
-
+                
                 if self.current_time > battery_updated + battery_update_interval:
                     self.update_mouth_leds()
+                    self.report_status()
+
                     battery_updated = self.current_time
                 
                 # if current_time > last_publish_motors + publish_motors_interval:
@@ -331,4 +289,5 @@ class NEFive:
                 loop_ended = ticks_ms()
         finally:
             # Put the board back into a safe state, regardless of how the program may have ended
+            self.node.shutdown()
             self.yukon.reset()

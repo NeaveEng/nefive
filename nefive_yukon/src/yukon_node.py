@@ -3,18 +3,13 @@
 import rospy
 import sys
 import signal
-import serial
-import struct
-import time
-from message_types import MessageTypes
-import random
 from sensor_msgs.msg import Joy
+from nefive_msgs.msg import Motors
 
 def handler(signum, frame):
     print("ctrl-c pressed, exiting")
     sys.exit()
 
-message_types = MessageTypes()
 last_msg_received = None
 
 # from https://electronics.stackexchange.com/questions/19669/algorithm-for-mixing-2-axis-analog-input-to-control-a-differential-motor-drive
@@ -30,13 +25,21 @@ def steering(x, y, rot):
 
     return front_left, front_right, back_left, back_right
 
+motor_msg = Motors()
+
 def setmotors(front_left, front_right, back_left, back_right):
-    ser.write(struct.pack('I', 0))
-    data = [rostime.secs, rostime.nsecs, back_right, back_left, front_left,front_right]
-    data_packed = struct.pack('IIffff', *data)           
-    print(f"Sending: {data_packed}, length: {len(data_packed)}")
-    ser.write(data_packed)
-    ser.write('\n'.encode('utf-8'))
+    global pub
+    rostime = rospy.get_rostime()
+    motor_msg.seconds = rostime.secs
+    motor_msg.nsec = rostime.nsecs
+    motor_msg.rostime = True
+    motor_msg.motor1 = front_right
+    motor_msg.motor2 = front_left
+    motor_msg.motor3 = back_left
+    motor_msg.motor4 = back_right
+
+    pub.publish(motor_msg)
+    
 
 def callback(data):
     global last_msg_received
@@ -62,7 +65,7 @@ def callback(data):
         front_left, front_right, back_left, back_right = steering(x, y, z)
         # print(front_left, front_right, back_left, back_right)
 
-        base_motor_speed = 1
+        base_motor_speed = 0.5
         turbo_multiplier = 1.25
 
         # Buttons are on when down so this makes sense in the physical world
@@ -78,7 +81,7 @@ def callback(data):
             back_left = back_left       * base_motor_speed * turbo_multiplier
             back_right = back_right     * base_motor_speed * turbo_multiplier
 
-        setmotors(front_left, front_right, back_left, back_right)
+        setmotors(front_right, front_left, back_left, back_right)
 
     # else:
         #  print("Motors not enabled.")
@@ -89,24 +92,11 @@ if __name__ == '__main__':
     try:
         rospy.init_node('yukon_node', anonymous=True)
         signal.signal(signal.SIGINT, handler)
-        ser = serial.Serial('/dev/ttyS0', 115200)
-        ser.flush()
 
         rospy.Subscriber('ne_five/joy', Joy, callback)
+        pub = rospy.Publisher('ne_five/motors', Motors, queue_size=1)
     
-        rate = rospy.Rate(1)
-
-        # Loop until disconnected
-        while not rospy.is_shutdown():
-            rostime = rospy.get_rostime()
-            ser.write(struct.pack('I', 2))
-            data = [rostime.secs, rostime.nsecs]
-            data_packed = struct.pack('II', *data)           
-            print(f"Sending: {data_packed}, length: {len(data_packed)}")
-            ser.write(data_packed)
-            ser.write('\n'.encode('utf-8'))
-
-            rate.sleep()
+        rospy.spin()
             
     except rospy.ROSInterruptException:
         print("exiting.")
