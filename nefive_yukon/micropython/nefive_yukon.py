@@ -1,3 +1,11 @@
+# This is a filthy hack to pre-allocate memory for the servo cluster
+# It'll be set to None and gc.collect() will be called to free it up
+space_for_servo_cluster = bytearray(14396)
+space_for_uros = bytearray(4096)
+
+import gc
+import micropython
+
 from pimoroni_yukon import Yukon
 from pimoroni_yukon import SLOT1 as M1
 from pimoroni_yukon import SLOT2 as SERVOS
@@ -7,16 +15,18 @@ from pimoroni_yukon import SLOT5 as LEDS
 from pimoroni_yukon import SLOT6 as M4
 from pimoroni_yukon.modules import BigMotorModule, QuadServoDirectModule, LEDStripModule
 from pimoroni_yukon.timing import ticks_ms, ticks_add
+from pimoroni import PID
+import pimoroni_yukon.logging as yukon_logging
 from servo import ServoCluster, Calibration
-
+from machine import Pin
 from nefive_msgs import Status, Motors, Imu
 from blinking import Blinking
-
 import math
 from RollingAverage import RollingAverage
 import uros
-import gc
 
+
+log_level = yukon_logging.LOG_INFO
 # Frees up memory in case new code is run without a reset
 gc.collect()
 
@@ -25,34 +35,37 @@ All the Yukon functionality to control NE-Five
 """
 
 class NEFive:
+    global space_for_servo_cluster
+
+    yukon = Yukon(logging_level=log_level)                         # Create a new Yukon object
+       
     # Constants
     GEAR_RATIO = 30                         # The gear ratio of the motor
     ENCODER_CPR = 64                        # The number of counts a single encoder shaft revolution will produce
     MOTOR_CPR = GEAR_RATIO * ENCODER_CPR    # The number of counts a single motor shaft revolution will produce
 
     # PIO and State Machine Usage
-    ENCODER_PIO         = 0                 # The PIO system to use (0 or 1) for the motor's encoder
-    ENCODER_SM          = 0                 # Four encoders so SM 0..3 are used
+    MOTOR_ENCODER_PIO         = 0                 # The PIO system to use (0 or 1) for the motor's encoder
+    MOTOR_ENCODER_SM          = 0                 # Four encoders so SM 0..3 are used
 
     STRIP_PIO           = 1                 # Each strip uses 1 SM, we hopefully have three available
-    STRIP_SM            = 1
+    STRIP_SM            = 0
 
     SERVO_CLUSTER_PIO   = 1
-    SERVO_CLUSTER_SM    = 0
-
-    SPEED = 0.005                           # How much to advance the motor phase offset by each update
-    UPDATES = 50                            # How many times to update the motors per second
-    SPEED_EXTENT = 0.5                      # How far from zero to drive the motors
+    SERVO_CLUSTER_SM    = 1
 
     STRIP_TYPE     = LEDStripModule.NEOPIXEL
     LEDS_PER_STRIP = 32
     BRIGHTNESS     = 0.75
-    SLEEP = 0.02                            # The time to sleep between each update
-    SPEED = 0.01                            # How much to advance the rainbow hue offset by each update
-    RAINBOW_SAT = 1.0                       # The saturation of the rainbow
-    RAINBOW_VAL = 1.0                       # The value (brightness) of the rainbow
+
+    # PID values
+    VEL_KP = 30.0                           # Velocity proportional (P) gain
+    VEL_KI = 0.0                            # Velocity integral (I) gain
+    VEL_KD = 0.4                            # Velocity derivative (D) gain
 
     MOTOR_SLOTS = [ M1, M2, M3, M4 ]
+    MOTOR_UPDATES     = 30                           # How many times to update the motor per second
+    MOTOR_UPDATE_RATE = 1 / MOTOR_UPDATES
 
     blinking = Blinking()
 
@@ -61,12 +74,19 @@ class NEFive:
     motor_directions = [1, 1, 1, 0]
     encoder_directions = [1, 0, 0, 0]
 
-    motors      = [None, None, None, None]
-    encoders    = [None, None, None, None]
-    led_strip   = None
-    servos      = None
+    # These are in radians per second, generated using the motor_profiler.py script
+    motor_speed_min_max = [[-50.59612, 48.28781], [-49.7635, 51.17347], [-51.14614, 53.7041], [-53.28336, 50.83044]]
+    motor_speed_scales = []
 
-    hue_offset = 0
+    for min_max in motor_speed_min_max:
+        motor_speed_scales.append((math.fabs(min_max[0]) + min_max[1])/2)
+
+    motors          = [None, None, None, None]
+    motor_requested_speeds = [0, 0, 0, 0]
+    encoders        = [None, None, None, None]
+    vel_pids        = [None, None, None, None]  
+    led_strip       = None
+    servos          = None
 
     uros = None
 
@@ -74,7 +94,6 @@ class NEFive:
     serial_port = None
 
     # Variables
-    yukon = Yukon()                         # Create a new Yukon object
     phase_offset = 0                        # The offset used to animate the motor
 
     time = [-1, -1]                     # Time, in [seconds, nsec since seconds]       
@@ -86,19 +105,47 @@ class NEFive:
 
     mouth_leds_on = False
 
+    
+    def motor_callback(self, msg):
+        print(f"{msg.motor1},{msg.motor2},{msg.motor3},{msg.motor4}")
+        self.motors[0].motor.speed(msg.motor1)
+        self.vel_pids[0].setpoint = msg.motor1
+        self.motors[1].motor.speed(msg.motor2)
+        self.vel_pids[1].setpoint = msg.motor2
+        self.motors[2].motor.speed(msg.motor3)
+        self.vel_pids[2].setpoint = msg.motor3
+        self.motors[3].motor.speed(msg.motor4)
+        self.vel_pids[3].setpoint = msg.motor4
+        
+#        self.motor_requested_speeds = [msg.motor1, msg.motor2, msg.motor3, msg.motor4]
+
+
+    def update_encoders(self):
+        for i in range(4):
+            self.encoders[i] = self.motors[i].encoder.capture()
+
+
+    def update_motor_speeds(self):
+        self.update_encoders()
+        for i in range(4):
+            accel = self.vel_pids[i].calculate(self.encoders[i].radians_per_second)
+            self.motors[i].motor.speed(self.motors[i].motor.speed() + (accel * self.MOTOR_UPDATE_RATE))
+            
+    
     def __init__(self):
+        global space_for_servo_cluster, space_for_uros
         # Configure the motor and encoder modules
         for i in range(4):
             print("Registering motor: ", i)
-            self.motors[i] = BigMotorModule(encoder_pio=self.ENCODER_PIO,    # Create a BigMotorModule object, with details of the encoder
+            self.motors[i] = BigMotorModule(encoder_pio=self.MOTOR_ENCODER_PIO,    # Create a BigMotorModule object, with details of the encoder
                             encoder_sm=i,
                             counts_per_rev=self.MOTOR_CPR,
                             init_motor=True,
                             init_encoder=True)
+            self.vel_pids[i] = PID(self.VEL_KP, self.VEL_KI, self.VEL_KD, self.MOTOR_UPDATE_RATE)  # Create a PID object for velocity control
             self.yukon.register_with_slot(self.motors[i], self.MOTOR_SLOTS[i])      # Register the BigMotorModule object with the slot
-        
+
         # Configure the servo module, double duty as UART
-        # init_servos=False means not all pins will be assigned to servos to be used as UART
         self.servo_module = QuadServoDirectModule(init_servos=False)        # Create a QuadServoDirectModule object
         self.yukon.register_with_slot(self.servo_module, SERVOS)  # Register the QuadServoDirectModule object with the slot
 
@@ -113,23 +160,37 @@ class NEFive:
 
         self.yukon.verify_and_initialise(allow_discrepencies=True)               # Verify that all modules are connected and initialise them
         self.yukon.enable_main_output()                  # Turn on power to the module slots
-
+        
         # Enable the motor modules
         for i in range(4):
             print("Enabling motor: ", i)
             self.motors[i].enable()
             self.motors[i].motor.direction(self.motor_directions[i])
             self.motors[i].encoder.direction(self.encoder_directions[i])
+            self.motors[i].motor.speed_scale(self.motor_speed_scales[i])
         
         # Enable the LED strip module
         self.led_strip.enable()
         
+        micropython.mem_info()
         # Enable the servo module, start with UART
+        space_for_uros = None
+        gc.collect()
         self.node=uros.NodeHandle(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2) 
         self.status = Status()
+        self.node.subscribe('ne_five/motors', Motors, self.motor_callback, buffer_size=256)
 
         self.servo_pins = [SERVOS.FAST3, SERVOS.FAST4]
-        self.servos = ServoCluster(self.SERVO_CLUSTER_PIO, self.SERVO_CLUSTER_SM, self.servo_pins)
+
+        print("Initialising servo cluster")
+        
+        micropython.mem_info()
+        print("Clearing space for servo cluster")
+        space_for_servo_cluster = None
+        gc.collect()
+        micropython.mem_info()
+
+        self.servos = ServoCluster(1, 1, self.servo_pins)
         self.servos.enable_all()
 
         # Configure the servo for the linear actuator
@@ -145,31 +206,12 @@ class NEFive:
                 self.encoders[2].revolutions_per_second, 
                 self.encoders[3].revolutions_per_second)
         
-        packed_data = ustruct.pack('fffff', *data)  
-        # self.serial_port.write(int(0).to_bytes(1, 'big'))  
-        # self.serial_port.write(packed_data)  
-
 
     # Currently sending dummy data as not yet implmented
     def send_imu_data(self):
         data = [0.1, 0.2, 0.3,
                 1.1, 1.2, 1.3,
                 2.1, 2.2, 2.3]  
-        packed_data = ustruct.pack('fffffffff', *data) 
-        # self.serial_port.write(int(1).to_bytes(1, 'big'))
-        # self.serial_port.write(packed_data)
-
-
-    def read_until_newline(self):
-        result = bytearray()
-        while True:
-            char = self.serial_port.read(1)
-            if char == None:
-                return None
-            if char == b'\n':
-                break
-            result.extend(char)
-        return bytes(result)
 
 
     def update_eye_leds(self):
@@ -186,8 +228,8 @@ class NEFive:
 
     def update_mouth_leds(self):
         # 4S battery, Samgsung 25R cells
-        min_voltage = 10.25     #   2.5 * 4 + margin
-        max_voltage = 16.8      #   4.2 * 4
+        min_voltage = 10.25
+        max_voltage = 16.3
         self.voltage_in_avg.add(self.yukon.read_input_voltage())
 
         # Calculate the percentage of the battery remaining
@@ -239,13 +281,14 @@ class NEFive:
         self.status.current = current
         self.status.temperature = temperature
 
-        self.node.publish("/status", self.status)
+        print(f"Status: {self.status.seconds}, {self.status.nsec}, {self.status.voltage_in}, {self.status.voltage_out}, {self.status.current}, {self.status.temperature}")
+
+        self.node.publish("/status", self.status, buffer_size=256)
 
 
     def run(self):
         # Wrap the code in a try block, to catch any exceptions (including KeyboardInterrupt)
-        try:
-            
+        try:            
             self.last_publish_motors = ticks_ms()
             self.publish_motors_interval = 50
 
@@ -262,22 +305,27 @@ class NEFive:
             battery_updated = ticks_ms()
             battery_update_interval = 1000
 
+            motor_update_interval = 1000 / self.MOTOR_UPDATES
+            last_motor_update = ticks_ms()
+
+            # Set the torso actuator to upright
+            self.servos.value(0, 0.75)
+
             while True:
                 self.current_time = ticks_ms()                   # Record the start time of the program loop    
                 delta_time = self.current_time - loop_ended
-
-                self.update_eye_leds()
-                # self.check_for_messages()
                 
+                self.update_eye_leds()                
                 if self.current_time > battery_updated + battery_update_interval:
                     self.update_mouth_leds()
                     self.report_status()
-
                     battery_updated = self.current_time
                 
-                # if current_time > last_publish_motors + publish_motors_interval:
-                #     send_motors()
-                #     last_publish_motors = current_time
+                if self.current_time > last_motor_update + motor_update_interval:
+                    self.update_motor_speeds()
+                    last_motor_update = self.current_time
+
+                self.servos.value(0, 0.75)
 
                 # if current_time > last_publish_imu + publish_imu_interval:
                 #     send_imu()
