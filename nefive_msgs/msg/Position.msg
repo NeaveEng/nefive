@@ -1,0 +1,14 @@
+uint32 seconds
+uint32 nsec
+uint32 seq
+string frame_id
+string child_frame_id
+float32 linear_velocity_x
+float32 linear_velocity_y
+float32 linear_velocity_z
+float32 angular_velocity_x
+float32 angular_velocity_y
+float32 angular_velocity_z
+float32 twist_covariance_x
+float32 twist_covariance_y
+float32 twist_covariance_z
