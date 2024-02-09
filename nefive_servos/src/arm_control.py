@@ -246,8 +246,8 @@ def joy_callback(data: Joy):
             trigger_prev = trigger_curr
             trigger_pulled = trigger_curr
         
-        # if trigger_pulled:
-        #     rospy.loginfo(f'{angles}')
+        if trigger_pulled:
+            rospy.loginfo(f'{angles}')
 
         start_angles = angles
 
