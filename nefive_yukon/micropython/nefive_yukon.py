@@ -1,7 +1,7 @@
-# This is a filthy hack to pre-allocate memory for the servo cluster
-# It'll be set to None and gc.collect() will be called to free it up
+# This is a filthy hack to pre-allocate memory
+# Each will be set to None and gc.collect() will be called to free it up before it's needed
 space_for_servo_cluster = bytearray(14396)
-space_for_uros = bytearray(4096)
+space_for_uros = bytearray(5000)
 
 import gc
 import micropython
@@ -15,6 +15,7 @@ from pimoroni_yukon import SLOT5 as LEDS
 from pimoroni_yukon import SLOT6 as M4
 from pimoroni_yukon.modules import BigMotorModule, QuadServoDirectModule, LEDStripModule
 from pimoroni_yukon.timing import ticks_ms, ticks_add
+from time import ticks_us
 from pimoroni import PID
 import pimoroni_yukon.logging as yukon_logging
 from servo import ServoCluster, Calibration
@@ -23,8 +24,10 @@ from nefive_msgs import Status, Motors, Imu
 from blinking import Blinking
 import math
 from RollingAverage import RollingAverage
+from odometry import Odometry
 import uros
-
+from kinematics import Kinematics
+from umatrix import * 
 
 log_level = yukon_logging.LOG_INFO
 # Frees up memory in case new code is run without a reset
@@ -63,19 +66,20 @@ class NEFive:
     VEL_KI = 0.0                            # Velocity integral (I) gain
     VEL_KD = 0.4                            # Velocity derivative (D) gain
 
-    MOTOR_SLOTS = [ M1, M2, M3, M4 ]
+    MOTOR_SLOTS = [ M2, M1, M3, M4 ]
     MOTOR_UPDATES     = 30                           # How many times to update the motor per second
     MOTOR_UPDATE_RATE = 1 / MOTOR_UPDATES
 
     blinking = Blinking()
+    total_duration = 0
 
     # 0: Front Left, 1: Front Right, 2: Rear Right, 3: Rear Left
     # Motor Directions: 0: Normal, 1: Reversed
     motor_directions = [1, 1, 1, 0]
-    encoder_directions = [1, 0, 0, 0]
+    encoder_directions = [0, 1, 0, 0]
 
     # These are in radians per second, generated using the motor_profiler.py script
-    motor_speed_min_max = [[-50.59612, 48.28781], [-49.7635, 51.17347], [-51.14614, 53.7041], [-53.28336, 50.83044]]
+    motor_speed_min_max = [[-49.7635, 51.17347], [-50.59612, 48.28781], [-51.14614, 53.7041], [-53.28336, 50.83044]]
     motor_speed_scales = []
 
     for min_max in motor_speed_min_max:
@@ -104,10 +108,24 @@ class NEFive:
     voltage_in_avg = RollingAverage(20)     # Rolling average of the input voltage
 
     mouth_leds_on = False
-
+    motor_speeds = None
     
+    durations = RollingAverage(20)
+    
+
+    def update_odom(self, duration):
+        self.motor_speeds = matrix([self.encoders[0].radians_per_second], 
+                              [self.encoders[1].radians_per_second], 
+                              [self.encoders[2].radians_per_second], 
+                              [self.encoders[3].radians_per_second])
+        latest_odom = self.kinematics.odometry(self.motor_speeds, duration)
+        
+        self.odom += latest_odom
+        self.total_duration += duration
+        self.durations.add(duration)
+
+        
     def motor_callback(self, msg):
-        print(f"{msg.motor1},{msg.motor2},{msg.motor3},{msg.motor4}")
         self.motors[0].motor.speed(msg.motor1)
         self.vel_pids[0].setpoint = msg.motor1
         self.motors[1].motor.speed(msg.motor2)
@@ -117,21 +135,22 @@ class NEFive:
         self.motors[3].motor.speed(msg.motor4)
         self.vel_pids[3].setpoint = msg.motor4
         
-#        self.motor_requested_speeds = [msg.motor1, msg.motor2, msg.motor3, msg.motor4]
-
-
+    encoder_counts = 0
+    
     def update_encoders(self):
+        self.encoder_counts += 1
         for i in range(4):
             self.encoders[i] = self.motors[i].encoder.capture()
-
+               
 
     def update_motor_speeds(self):
         self.update_encoders()
+
         for i in range(4):
             accel = self.vel_pids[i].calculate(self.encoders[i].radians_per_second)
             self.motors[i].motor.speed(self.motors[i].motor.speed() + (accel * self.MOTOR_UPDATE_RATE))
             
-    
+
     def __init__(self):
         global space_for_servo_cluster, space_for_uros
         # Configure the motor and encoder modules
@@ -215,15 +234,15 @@ class NEFive:
 
 
     def update_eye_leds(self):
-            leds_to_update = self.blinking.update_eyelids(self.current_time)
-            if leds_to_update is not None:
-                # Update the LED strip
-                for led in range(24):
-                    if led in leds_to_update:
-                        self.led_strip.strip.set_rgb(led, 150, 150, 150)
-                    else:
-                        self.led_strip.strip.set_rgb(led, 0, 0, 0)
-                self.led_strip.strip.update()
+        leds_to_update = self.blinking.update_eyelids(self.current_time)
+        if leds_to_update is not None:
+            # Update the LED strip
+            for led in range(24):
+                if led in leds_to_update:
+                    self.led_strip.strip.set_rgb(led, 150, 150, 150)
+                else:
+                    self.led_strip.strip.set_rgb(led, 0, 0, 0)
+            self.led_strip.strip.update()
 
 
     def update_mouth_leds(self):
@@ -282,10 +301,16 @@ class NEFive:
         self.status.temperature = temperature
 
         print(f"Status: {self.status.seconds}, {self.status.nsec}, {self.status.voltage_in}, {self.status.voltage_out}, {self.status.current}, {self.status.temperature}")
-
+        print(f"Odom: [{self.odom}], update_counts: {self.encoder_counts}")
+        print(f"Motors: {self.encoders[0].radians_per_second}, {self.encoders[1].radians_per_second}, {self.encoders[2].radians_per_second}, {self.encoders[3].radians_per_second}")
         self.node.publish("/status", self.status, buffer_size=256)
-
-
+       
+    kinematics = Kinematics() 
+    # Create kinematics objects at start point
+    velocities = kinematics.motor_speeds(0, 0, 0)
+    odom = kinematics.odometry(velocities, 0)
+    
+    
     def run(self):
         # Wrap the code in a try block, to catch any exceptions (including KeyboardInterrupt)
         try:            
@@ -295,13 +320,16 @@ class NEFive:
             self.last_publish_imu = ticks_ms()
             self.publish_imu_interval = 10
 
-            loop_ended = ticks_ms()
+            delta_time, loop_ended = None, None
             
             # Set the mouth to green
             for led in range(24, 32):
                 self.led_strip.strip.set_rgb(led, 0, 75, 0)
             self.led_strip.strip.update()
 
+            odom_updated = ticks_ms()
+            odom_update_interval = 10
+            
             battery_updated = ticks_ms()
             battery_update_interval = 1000
 
@@ -312,29 +340,34 @@ class NEFive:
             self.servos.value(0, 0.75)
 
             while True:
-                self.current_time = ticks_ms()                   # Record the start time of the program loop    
-                delta_time = self.current_time - loop_ended
+                self.current_time = ticks_ms()                   # Record the start time of the program loop
                 
+                if loop_ended is not None:
+                    delta_time = (ticks_us() - loop_ended) / 1000
+                    
                 self.update_eye_leds()                
                 if self.current_time > battery_updated + battery_update_interval:
                     self.update_mouth_leds()
                     self.report_status()
+                    
                     battery_updated = self.current_time
                 
                 if self.current_time > last_motor_update + motor_update_interval:
                     self.update_motor_speeds()
+                    # print(f"delta_time: {delta_time:.9f}")
+                    self.update_odom((self.current_time - last_motor_update) / 1000)
                     last_motor_update = self.current_time
 
                 self.servos.value(0, 0.75)
 
-                # if current_time > last_publish_imu + publish_imu_interval:
-                #     send_imu()
-                #     last_publish_imu = current_time
-
+                if delta_time is not None:
+                    self.update_encoders()        
+                    # self.update_odom(delta_time)
+                
                 # Monitor sensors until the current time is reached, recording the min, max, and average for each
                 # This approach accounts for the updates taking a non-zero amount of time to complete
                 self.yukon.monitor_until_ms(ticks_add(self.current_time, 5))
-                loop_ended = ticks_ms()
+                loop_ended = ticks_us()
         finally:
             # Put the board back into a safe state, regardless of how the program may have ended
             self.node.shutdown()

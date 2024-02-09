@@ -22,44 +22,38 @@ l = TRACK_LENGTH / 2
 w = TRACK_WIDTH / 2
 r = WHEEL_RADIUS
 
-kinematic_model = np.array([[-l-w, 1, -1],
-                    [ l+w, 1,  1],
-                    [ l+w, 1, -1],
-                    [-l-w, 1,  1]]) / r
+k_const = (l+w)
 
+front_left  = [1,  1, -l-w]
+front_right = [1, -1,  l+w]
+rear_left   = [1, -1, -l-w]
+rear_right  = [1 , 1,  l+w]
+
+kinematic_model = np.array([front_left, 
+                            front_right,
+                            rear_left,
+                            rear_right]) / r 
 
 # From page 13: https://cdn.intechopen.com/pdfs/465/InTechOmnidirectional_mobile_robot_design_and_implementation.pdf
 def steering(vx, vy, wz):
-    input_array = np.array([wz,vx,vy])    
+    input_array = np.array([vx, vy, wz])    
     input_array.shape = (3, 1)
-
     u = np.dot(kinematic_model, input_array)
-
-    # The kinematic model assumes that the motors are laid out as follows:
-    #  [3]    [0]
-    #     --->
-    #  [2]    [1]
-    #
-    # NE-Five is wired up as follows:
-    #  [2]    [1]
-    #     --->
-    #  [3]    [0]
-    
-    return [u[1], u[0], u[3], u[2]]
+    return u
 
 motor_msg = Motors()
 
 def setmotors(speeds):
     global pub
-    front_left, front_right, back_left, back_right = speeds
+    # front_left, front_right, back_left, back_right = speeds
     rostime = rospy.get_rostime()
     motor_msg.seconds = rostime.secs
     motor_msg.nsec = rostime.nsecs
     motor_msg.rostime = True
-    motor_msg.motor1 = front_right
-    motor_msg.motor2 = front_left
-    motor_msg.motor3 = back_left
-    motor_msg.motor4 = back_right
+    motor_msg.motor1 = speeds[0]
+    motor_msg.motor2 = speeds[1]
+    motor_msg.motor3 = speeds[2]
+    motor_msg.motor4 = speeds[3]
 
     pub.publish(motor_msg)
     
