@@ -20,7 +20,7 @@ from pimoroni import PID
 import pimoroni_yukon.logging as yukon_logging
 from servo import ServoCluster, Calibration
 from machine import Pin
-from nefive_msgs import Status, Motors, Imu
+from nefive_msgs import Status, Motors, Imu, Position
 from blinking import Blinking
 import math
 from RollingAverage import RollingAverage
@@ -197,6 +197,15 @@ class NEFive:
         gc.collect()
         self.node=uros.NodeHandle(1, 115200, tx=SERVOS.FAST1, rx=SERVOS.FAST2) 
         self.status = Status()
+
+        self.position = Position()
+        self.position.frame_id = "base_frame_id"
+        self.position.child_frame_id = "base_child_id"
+        self.position.seq = 0
+        self.position.position_z = 0
+        self.position.angle_x = 0
+        self.position.angle_y = 0
+
         self.node.subscribe('ne_five/motors', Motors, self.motor_callback, buffer_size=256)
 
         self.servo_pins = [SERVOS.FAST3, SERVOS.FAST4]
@@ -300,10 +309,19 @@ class NEFive:
         self.status.current = current
         self.status.temperature = temperature
 
+        self.position.seconds = time[0]
+        self.position.nsec = time[1]
+        self.position.rostime = False
+        self.position.seq = 0
+        self.position.position_x = self.odom[0][0]
+        self.position.position_y = self.odom[1][0]
+        self.position.angle_z = self.odom[2][0]
+
         print(f"Status: {self.status.seconds}, {self.status.nsec}, {self.status.voltage_in}, {self.status.voltage_out}, {self.status.current}, {self.status.temperature}")
         print(f"Odom: [{self.odom}], update_counts: {self.encoder_counts}")
         print(f"Motors: {self.encoders[0].radians_per_second}, {self.encoders[1].radians_per_second}, {self.encoders[2].radians_per_second}, {self.encoders[3].radians_per_second}")
-        self.node.publish("/status", self.status, buffer_size=256)
+        self.node.publish("/ne_five/status", self.status, buffer_size=256)
+        self.node.publish("/ne_five/yukon_odom", self.position, buffer_size=256)
        
     kinematics = Kinematics() 
     # Create kinematics objects at start point

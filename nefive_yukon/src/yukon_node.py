@@ -6,6 +6,8 @@ import signal
 import numpy as np
 from sensor_msgs.msg import Joy
 from nefive_msgs.msg import Motors
+from nav_msgs.msg import Odometry
+from nefive_msgs.msg import Position
 
 def handler(signum, frame):
     print("ctrl-c pressed, exiting")
@@ -42,9 +44,10 @@ def steering(vx, vy, wz):
     return u
 
 motor_msg = Motors()
+odom_msg = Odometry()
 
 def setmotors(speeds):
-    global pub
+    global motor_pub
     # front_left, front_right, back_left, back_right = speeds
     rostime = rospy.get_rostime()
     motor_msg.seconds = rostime.secs
@@ -55,10 +58,24 @@ def setmotors(speeds):
     motor_msg.motor3 = speeds[2]
     motor_msg.motor4 = speeds[3]
 
-    pub.publish(motor_msg)
-    
+    motor_pub.publish(motor_msg)
 
-def callback(data):
+
+def odom_callback(data):
+    global odom_pub
+    rostime = rospy.get_rostime()
+    odom_msg.header.stamp.secs = rostime.secs
+    odom_msg.header.stamp.nsecs = rostime.nsecs
+    odom_msg.header.frame_id = data.frame_id
+    odom_msg.child_frame_id = data.child_frame_id
+    odom_msg.pose.pose.position.x = data.position_x
+    odom_msg.pose.pose.position.y = data.position_y
+    odom_msg.pose.pose.orientation.z = data.angle_z
+
+    odom_pub.publish(odom_msg)
+
+
+def joy_callback(data):
     global last_msg_received
     # rospy.loginfo(rospy.get_caller_id() + 'RCVD: %s', data)
     last_msg_received = rospy.Time.now()
@@ -110,10 +127,16 @@ if __name__ == '__main__':
         rospy.init_node('yukon_node', anonymous=True)
         signal.signal(signal.SIGINT, handler)
 
-        rospy.Subscriber('ne_five/joy', Joy, callback)    
+        rospy.Subscriber('ne_five/joy', Joy, joy_callback)    
         rospy.loginfo("Subscribed to ne_five/joy")
-        pub = rospy.Publisher('ne_five/motors', Motors, queue_size=1)
+        rospy.Subscriber('ne_five/yukon_odom', Position, odom_callback)
+        rospy.loginfo("Subscribed to ne_five/yukon_odom")    
+
+        motor_pub = rospy.Publisher('ne_five/motors', Motors, queue_size=1)
         rospy.loginfo("Publishing to ne_five/motors")
+        odom_pub = rospy.Publisher('ne_five/odom', Odometry, queue_size=1)
+        rospy.loginfo("Publishing to ne_five/odom")
+        
         rospy.spin()
             
     except rospy.ROSInterruptException:

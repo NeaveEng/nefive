@@ -1,7 +1,7 @@
 from umatrix import *
 
 class Kinematics:
-    WHEEL_RADIUS = 0.030
+    WHEEL_RADIUS = 0.03
     TRACK_WIDTH  = 0.188 
     TRACK_LENGTH = 0.147
 
