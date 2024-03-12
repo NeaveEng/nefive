@@ -75,7 +75,7 @@ def callback(data):
         motor_speeds = steering(x, y, z)
         # print(front_left, front_right, back_left, back_right)
 
-        base_motor_speed = 0.2
+        motor_base_speed = 0.1
         turbo_multiplier = 1.25
 
         # Buttons are on when down so this makes sense in the physical world
