@@ -60,18 +60,21 @@ def callback(data):
         front_left, front_right, back_left, back_right = steering(x, y, z)
         # print(front_left, front_right, back_left, back_right)
 
+        motor_base_speed = 0.1
+        turbo_multiplier = 1.25
+
         # Buttons are on when down so this makes sense in the physical world
         if(data.buttons[4] == 1):
             # Low speed, halve values
-            front_left = front_left * 0.33
-            front_right = front_right * 0.33
-            back_left = back_left * 0.33
-            back_right = back_right * 0.33
+            front_left = front_left * motor_base_speed
+            front_right = front_right * motor_base_speed
+            back_left = back_left * motor_base_speed
+            back_right = back_right * motor_base_speed
         else:
-            front_left = front_left * 0.66
-            front_right = front_right * 0.66
-            back_left = back_left * 0.66
-            back_right = back_right * 0.66
+            front_left = front_left * motor_base_speed * turbo_multiplier
+            front_right = front_right * motor_base_speed * turbo_multiplier
+            back_left = back_left * motor_base_speed * turbo_multiplier
+            back_right = back_right * motor_base_speed * turbo_multiplier
 
         setmotors(front_left, front_right, back_left, back_right)
     else:
