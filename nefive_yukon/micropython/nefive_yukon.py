@@ -120,12 +120,13 @@ class NEFive:
                               [self.encoders[3].radians_per_second])
         latest_odom = self.kinematics.odometry(self.motor_speeds, duration)
         
-        self.odom += latest_odom
+        self.odom += latest_odomf
         self.total_duration += duration
         self.durations.add(duration)
 
         
     def motor_callback(self, msg):
+        print("motor_msg recv")
         self.motors[0].motor.speed(msg.motor1)
         self.vel_pids[0].setpoint = msg.motor1
         self.motors[1].motor.speed(msg.motor2)
@@ -318,8 +319,8 @@ class NEFive:
         self.position.angle_z = self.odom[2][0]
 
         print(f"Status: {self.status.seconds}, {self.status.nsec}, {self.status.voltage_in}, {self.status.voltage_out}, {self.status.current}, {self.status.temperature}")
-        print(f"Odom: [{self.odom}], update_counts: {self.encoder_counts}")
-        print(f"Motors: {self.encoders[0].radians_per_second}, {self.encoders[1].radians_per_second}, {self.encoders[2].radians_per_second}, {self.encoders[3].radians_per_second}")
+        # print(f"Odom: [{self.odom}], update_counts: {self.encoder_counts}")
+        # print(f"Motors: {self.encoders[0].radians_per_second}, {self.encoders[1].radians_per_second}, {self.encoders[2].radians_per_second}, {self.encoders[3].radians_per_second}")
         self.node.publish("/ne_five/status", self.status, buffer_size=256)
         self.node.publish("/ne_five/yukon_odom", self.position, buffer_size=256)
        

@@ -92,7 +92,7 @@ def joy_callback(data):
 
     else:
         control_movement = data.buttons[2] == 1
-        x, y, z, torso = data.axes[1], data.axes[0], data.axes[2], data.axes[6]
+        x, y, z, torso = data.axes[1], data.axes[0], -data.axes[2], data.axes[6]
 
     if(control_movement == True):
         # print(data.axes[0], data.axes[1])
@@ -105,7 +105,7 @@ def joy_callback(data):
         # From profiling the motors, they have a max speed of ~50 rad/s
         # With 60mm wheels this works out to a max speed of 1.47 m/s in a straight line
         # As a base speed, 0.5m/s seems reasonable
-        base_motor_speed = 0.5
+        base_motor_speed = 0.45
         turbo_multiplier = 1.25
 
         # Buttons are on when down so this makes sense in the physical world
