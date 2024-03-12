@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import rospy
-import redboard
-import math
 import time
 import threading
+import numpy as np 
+import math 
 
 from sensor_msgs.msg import Joy
-from ros_redboard.msg import ADC
+from nefive_msgs.msg import Motors
+
 
 # time in seconds in not recieving a message before stopping
 msg_timeout = rospy.Duration(0.50)
@@ -15,30 +16,40 @@ last_msg_received = rospy.Time.from_sec(time.time())
 
 pub = None
 
-rb = redboard.RedBoard()
-
-rb.m0_invert = False         # front left 
-rb.m1_invert = False        # front right
-rb.m2_invert = True         # rear left
-rb.m3_invert = True        # rear right
-
 WHEEL_RADIUS = 30
-WHEEL_SEPARATION_WIDTH  = 195 
-WHEEL_SEPARATION_LENGTH = 150
-WHEEL_GEOMETRY = (WHEEL_SEPARATION_LENGTH + WHEEL_SEPARATION_WIDTH) / 2
+TRACK_WIDTH  = 195 
+TRACK_LENGTH = 150
 
-# from https://electronics.stackexchange.com/questions/19669/algorithm-for-mixing-2-axis-analog-input-to-control-a-differential-motor-drive
-def steering(x, y, rot):
-    # x = x * -1
-    # y = y * -1
-    # rot = rot * -1
+# print(f"Calculating wheel speeds for {wz}, {vx}, {vy}")
+l = TRACK_LENGTH / 2
+w = TRACK_WIDTH / 2
+r = WHEEL_RADIUS
+
+kinematic_model = np.array([[-l-w, 1, -1],
+                    [ l+w, 1,  1],
+                    [ l+w, 1, -1],
+                    [-l-w, 1,  1]]) / r
+
+msg = Motors()
+
+# From page 13: https://cdn.intechopen.com/pdfs/465/InTechOmnidirectional_mobile_robot_design_and_implementation.pdf
+def steering(vx, vy, wz):
+    input_array = np.array([wz,vx,vy])    
+    input_array.shape = (3, 1)
+
+    u = np.dot(kinematic_model, input_array)
+
+    # The kinematic model assumes that the motors are laid out as follows:
+    #  [3]    [0]
+    #     --->
+    #  [2]    [1]
+    #
+    # NE-Five is wired up as follows:
+    #  [2]    [1]
+    #     --->
+    #  [3]    [0]
     
-    front_left = (x - y - rot) # * WHEEL_GEOMETRY) / WHEEL_RADIUS
-    front_right = (x + y + rot) # * WHEEL_GEOMETRY) / WHEEL_RADIUS
-    back_left = (x + y - rot) # * WHEEL_GEOMETRY) / WHEEL_RADIUS
-    back_right = (x - y + rot) # * WHEEL_GEOMETRY) / WHEEL_RADIUS
-
-    return front_left, front_right, back_left, back_right
+    return [u[1], u[0], u[3], u[2]]
 
 def callback(data):
     global last_msg_received
@@ -61,7 +72,7 @@ def callback(data):
 
     if(control_movement == True):
         # print(data.axes[0], data.axes[1])
-        front_left, front_right, back_left, back_right = steering(x, y, z)
+        motor_speeds = steering(x, y, z)
         # print(front_left, front_right, back_left, back_right)
 
         base_motor_speed = 0.2
@@ -70,28 +81,20 @@ def callback(data):
         # Buttons are on when down so this makes sense in the physical world
         if(data.buttons[4] == 1):
             # Low speed, halve values
-            front_left = front_left     * base_motor_speed
-            front_right = front_right   * base_motor_speed
-            back_left = back_left       * base_motor_speed
-            back_right = back_right     * base_motor_speed
+            motor_speeds = np.multiply(motor_speeds, base_motor_speed)
         else:
-            front_left = front_left     * base_motor_speed * turbo_multiplier
-            front_right = front_right   * base_motor_speed * turbo_multiplier
-            back_left = back_left       * base_motor_speed * turbo_multiplier
-            back_right = back_right     * base_motor_speed * turbo_multiplier
+            motor_speeds = np.multiply(motor_speeds, base_motor_speed * turbo_multiplier)
 
-        setmotors(front_left, front_right, back_left, back_right)
-        rb.servo7 = torso
+        setmotors(motor_speeds)
 
     else:
         #  print("Motors not enabled.")
-        setmotors(0, 0, 0, 0)
+        setmotors([0, 0, 0, 0])
 
-def setmotors(m0, m1, m2, m3):
-    rb.m0 = m0
-    rb.m1 = m1
-    rb.m2 = m2
-    rb.m3 = m3
+def setmotors(motor_speeds):
+    time = rospy.get_time()
+    msg.seconds = math.fabs(time)
+    msg.nsec = (time - msg.seconds) * 1e9
 
 def publish_adc():
     try:
@@ -117,7 +120,7 @@ def timeout_check(event):
     timediff = rospy.Time.now() - last_msg_received
     if(timediff > msg_timeout):
         print("Timed out: " + str(rospy.Time.now()) + ", " + str(last_msg_received) + ", " + str(timediff))
-        setmotors(0, 0, 0, 0)
+        setmotors([0, 0, 0, 0])
 
 def listener():
     global pub
