@@ -85,7 +85,8 @@ right_eye = [[12, 13], [14, 23], [15, 22], [16, 21], [17, 20], [18, 19]]
 
 brightness = 135
 
-for x in range(24, 32):
-	pixels[x] = (25, 0, 0)
+# for x in range(24, 32):
+pixels.fill((25, 0, 0))
+# pixels[0] = (255, 0, 0)
 
-blinking((75, 75, 75))
+# blinking((75, 75, 75))

@@ -1,0 +1,11 @@
+uint32 seconds
+uint32 nsec
+uint32 seq
+string frame_id
+string child_frame_id
+float32 position_x
+float32 position_y
+float32 position_z
+float32 angle_x
+float32 angle_y
+float32 angle_z
