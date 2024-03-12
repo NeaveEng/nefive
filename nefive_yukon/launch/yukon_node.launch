@@ -1,0 +1,7 @@
+<launch>
+  <arg name="node_name"               default="nefive"/>
+
+  <node name="$(arg node_name)" pkg="nefive_yukon" type="yukon_node.py"
+        required="true" output="screen">
+  </node>
+</launch>
