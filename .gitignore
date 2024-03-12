@@ -1,2 +1,3 @@
 .vscode/*
 nefive_servos/src/__pycache__/**
+**.pyc
