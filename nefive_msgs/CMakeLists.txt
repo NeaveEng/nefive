@@ -55,6 +55,7 @@ add_message_files(
   Motors.msg
   Imu.msg
   Status.msg
+  Position.msg
 )
 
 ## Generate services in the 'srv' folder
