@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import std_msgs.msg
 import cv2
 import time
 import yaml
@@ -11,10 +11,11 @@ import numpy as np
 import depthai as dai
 import rospy
 from sensor_msgs.msg import Image, CompressedImage, CameraInfo, PointCloud2
-# import open3d as o3d
+import sensor_msgs.point_cloud2 as pc2
+import open3d as o3d
 # from projector_device import PointCloudVisualizer
 # from projector_3d import PointCloudVisualizer3d
-# from open3d_ros_helper import open3d_ros_helper as orh
+# import open3d_ros_helper as orh
 from pathlib import Path
 import os
 import rospkg
@@ -40,6 +41,21 @@ def signal_handler(signal, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+
+
+def open3d_to_ros(open3d_cloud, frame_id="base_link"):
+    # Convert the cloud to a numpy array
+    xyz_array = np.asarray(open3d_cloud.points, dtype=np.float32)
+
+    # Create a header for the PointCloud2 message
+    header = std_msgs.msg.Header()
+    header.stamp = rospy.Time.now()
+    header.frame_id = frame_id
+
+    # Create the PointCloud2 message
+    ros_cloud = pc2.create_cloud_xyz32(header, xyz_array)
+
+    return ros_cloud
 
 def create_xyz(width, height, camera_matrix):
     xs = np.linspace(0, width - 1, width, dtype=float6)
@@ -106,12 +122,14 @@ def configureDepthPostProcessing(stereoDepthNode):
     config.censusTransform.enableMeanMode = True
     config.costMatching.linearEquationParameters.alpha = 0
     config.costMatching.linearEquationParameters.beta = 2
+
+    depth.initialConfig.setDepthUnit(depth.initialConfig.AlgorithmControl.DepthUnit.METER)
+
     stereoDepthNode.initialConfig.set(config)
     stereoDepthNode.setLeftRightCheck(lrcheck)
     stereoDepthNode.setExtendedDisparity(extended)
     stereoDepthNode.setSubpixel(subpixel)
     stereoDepthNode.setRectifyEdgeFillColor(0)  # Black, to better see the cutout
-
 
 temporalSettings = {
     "OFF":  dai.StereoDepthConfig.PostProcessing.TemporalFilter.PersistencyMode.PERSISTENCY_OFF,
@@ -156,28 +174,37 @@ queueNames = []
 
 # Define sources and outputs
 leftCam = pipeline.create(dai.node.ColorCamera)
-rightCam = pipeline.create(dai.node.ColorCamera)
-centerCam = pipeline.create(dai.node.ColorCamera)
-stereo = pipeline.create(dai.node.StereoDepth)
-# stereo.enableDistortionCorrection(True)
-
 leftOut = pipeline.create(dai.node.XLinkOut)
-rightOut = pipeline.create(dai.node.XLinkOut)
-centerOut = pipeline.create(dai.node.XLinkOut)
-depthOut = pipeline.create(dai.node.XLinkOut)
-disparityOut = pipeline.create(dai.node.XLinkOut)
-
 leftOut.setStreamName("left")
-rightOut.setStreamName("right")
-centerOut.setStreamName("center")
-depthOut.setStreamName("depth")
-disparityOut.setStreamName("disp")
-
 queueNames.append("left")
+
+rightCam = pipeline.create(dai.node.ColorCamera)
+rightOut = pipeline.create(dai.node.XLinkOut)
+rightOut.setStreamName("right")
 queueNames.append("right")
+
+centerCam = pipeline.create(dai.node.ColorCamera)
+centerOut = pipeline.create(dai.node.XLinkOut)
+centerOut.setStreamName("center")
 queueNames.append("center")
+
+depth = pipeline.create(dai.node.StereoDepth)
+depthOut = pipeline.create(dai.node.XLinkOut)
+depthOut.setStreamName("depth")
 queueNames.append("depth")
+
+disparityOut = pipeline.create(dai.node.XLinkOut)
+disparityOut.setStreamName("disp")
 queueNames.append("disp")
+
+pointcloud: dai.node.PointCloud = pipeline.create(dai.node.PointCloud)
+pointcloudOut = pipeline.create(dai.node.XLinkOut)
+pointcloudOut.setStreamName("pcl")
+pointcloudOut.input.setBlocking(False)
+queueNames.append("pcl")
+
+sync = pipeline.create(dai.node.Sync)
+
 
 scaleNumerator   = 1
 scaleDenominator = 3
@@ -203,58 +230,45 @@ centerCam.setBoardSocket(dai.CameraBoardSocket.CAM_A)
 centerCam.setIspScale(scaleNumerator, scaleDenominator)
 centerCam.setFps(25)
 
-stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_ACCURACY)
-stereo.initialConfig.setConfidenceThreshold(245)
-# LR-check is required for depth alignment
-stereo.setLeftRightCheck(True)
+depth.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+depth.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)
+depth.setLeftRightCheck(True)
+depth.setExtendedDisparity(False)
+depth.setSubpixel(True)
+depth.setRectifyEdgeFillColor(0)  # Black, to better see the cutout
+config = depth.initialConfig.get()
+config.postProcessing.thresholdFilter.minRange = 200
+config.postProcessing.thresholdFilter.maxRange = 1000
+depth.initialConfig.set(config)
 
 print("Aligning to right camera...")
-stereo.setDepthAlign(dai.CameraBoardSocket.CAM_C)
-stereo.setDepthAlign(dai.StereoDepthConfig.AlgorithmControl.DepthAlign.RECTIFIED_RIGHT)
+depth.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
-stereo.initialConfig.setMedianFilter(medianMap["7x7"])  # KERNEL_7x7 default
-stereo.setRectifyEdgeFillColor(0)  # Black, to better see the cutout
-stereo.setExtendedDisparity(False)
-stereo.setSubpixel(True)
+# depth.setDepthAlign(dai.StereoDepthConfig.AlgorithmControl.DepthAlign.RECTIFIED_RIGHT)
 
-configureDepthPostProcessing(stereo)
-
-# print("Creating post processing config...")
-# config = stereo.initialConfig.get()
-# config.postProcessing.speckleFilter.enable = True
-# config.postProcessing.speckleFilter.speckleRange = 50
-# config.postProcessing.temporalFilter.enable = False
-# config.postProcessing.temporalFilter.persistencyMode = temporalSettings["OFF"]
-
-# config.postProcessing.spatialFilter.enable = True
-# config.postProcessing.spatialFilter.holeFillingRadius = 25
-# config.postProcessing.spatialFilter.numIterations = 1
-# config.postProcessing.thresholdFilter.minRange = 50
-# config.postProcessing.thresholdFilter.maxRange = 2000
-# config.postProcessing.decimationFilter.decimationFactor = 1
-# stereo.initialConfig.set(config)
-
-# Depth -> PointCloud
-# pcl = pipeline.create(dai.node.PointCloud)
-# stereo.depth.link(pcl.inputDepth)
-
-# pcl_out = pipeline.createXLinkOut()
-# pcl_out.setStreamName("pcl")
-# queueNames.append("pcl")
+configureDepthPostProcessing(depth)
 
 print("Creating links...")
 # Linking
 leftCam.video.link(leftOut.input)
 rightCam.video.link(rightOut.input)
-
 centerCam.isp.link(centerOut.input)
 
-leftCam.isp.link(stereo.left)
-rightCam.isp.link(stereo.right)
+leftCam.isp.link(depth.left)
+rightCam.isp.link(depth.right)
 
-stereo.depth.link(depthOut.input)
-stereo.disparity.link(disparityOut.input)
-# pcl.outputPointCloud.link(pcl_out.input)
+depth.depth.link(depthOut.input)
+depth.depth.link(pointcloud.inputDepth)
+depth.disparity.link(disparityOut.input)
+
+centerCam.isp.link(sync.inputs["center"])
+pointcloud.outputPointCloud.link(sync.inputs["pcl"])
+pointcloud.initialConfig.setSparse(False)
+sync.out.link(pointcloudOut.input)
+
+inConfig = pipeline.create(dai.node.XLinkIn)
+inConfig.setStreamName("config")
+inConfig.out.link(pointcloud.inputConfig)
 
 left_img_pub = rospy.Publisher('camera/left/image', Image, queue_size=1)
 right_img_pub = rospy.Publisher('camera/right/image', Image, queue_size=1)
@@ -273,7 +287,7 @@ right_compressed_pub = rospy.Publisher('camera/right/image/compressed', Compress
 center_compressed_pub = rospy.Publisher('camera/center/image/compressed', CompressedImage, queue_size=1)
 disparity_compressed_pub = rospy.Publisher('camera/disparity/image/compressed', CompressedImage, queue_size=1)
 
-# pcl2_pub = rospy.Publisher('camera/depth/points', PointCloud2, queue_size=1)
+pcl2_pub = rospy.Publisher('camera/depth/points', PointCloud2, queue_size=1)
 
 # init messages
 left_img_msg = Image()
@@ -350,19 +364,6 @@ with device:
         dai.Size2f(resolution[0], resolution[1]),
     )
 
-    # # Creater xyz data and send it to the device - to the pointcloud generation model (NeuralNetwork node)
-    # xyz = create_xyz(resolution[0], resolution[1], np.array(M_right).reshape(3,3))
-    # matrix = np.array([xyz], dtype=np.float16).view(np.int8)
-    # buff = dai.Buffer()
-    # buff.setData(matrix)
-    # device.getInputQueue("xyz_in").send(buff)
-
-    # pcl_converter_3d = PointCloudVisualizer3d(M_right, resolution[0], resolution[1], vis=False)    
-    # pcl_converter = PointCloudVisualizer()
-    # queue = device.getOutputQueue("pcl", maxSize=8, blocking=False)
-
-    # pcl = None
-
     if debugMode == True:
         # Configure windows; trackbar adjusts blending ratio of rgb/depth
         leftWindowName = "left"
@@ -377,19 +378,9 @@ with device:
         cv2.namedWindow(depthWindowName)
         cv2.namedWindow(dispWindowName)
 
-        # vis = o3d.visualization.Visualizer()
-        # vis.create_window("[DepthAI] Open3D integration demo", 960, 540)
-
-        # vis.add_geometry(pcl)
-        # origin = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0, 0, 0])
-        # vis.add_geometry(origin)
-        # ctr = vis.get_view_control()
-        # ctr.set_zoom(0.3)
-        # # ctr.camera_local_rotate()
-        # ctr.camera_local_translate()
-
 
     R_camera_to_world = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]).astype(float)
+    pcd = o3d.geometry.PointCloud()
 
     while not rospy.is_shutdown():
         latestPacket = {}
@@ -398,54 +389,54 @@ with device:
         latestPacket["center"] = None
         latestPacket["depth"] = None
         latestPacket["disp"] = None
-        # latestPacket["pcl"] = None
+        latestPacket["pcl"] = None
+        frameCenter = None
 
         stamp = rospy.Time.now()
         left_cam_info_msg.header.stamp = stamp
         right_cam_info_msg.header.stamp = stamp
 
-        queueEvents = device.getQueueEvents(("left", "right", "center", "depth", "disp"))
+        queueEvents = device.getQueueEvents(("left", "right", "center", "depth", "disp", "pcl"))
         for queueName in queueEvents:
             packets = device.getOutputQueue(queueName).tryGetAll()
             if len(packets) > 0:
                 latestPacket[queueName] = packets[-1]
 
-        # if latestPacket["pcl"] is not None:
-            # framePcl = latestPacket["pcl"].getFirstLayerFp16()
-            # pcl_data = np.array(framePcl).reshape(1, 3, resolution[1], resolution[0])
-            # pcl_data = pcl_data.reshape(3, -1).T.astype(np.float64) / 1000.0
-            
-            # pcl_frame: dai.ImgFrame = latestPacket['pcl']
-            # pcl_data = pcl_frame.getFrame()
+        if latestPacket["center"] is not None:
+            frameCenter = latestPacket["center"].getCvFrame()
+            if debugMode == True:
+                cv2.imshow(centerWindowName, frameCenter)
 
-            # pcl_arr = pcl_data.view(float).reshape((pcl_frame.getHeight() * pcl_frame.getWidth(), 3))
-            # print(f"Frame: {pcl_frame.getWidth()},{pcl_frame.getHeight()},{pcl_frame.getType()}; Arr: {pcl_arr.shape}")
+            center_img_msg.header.stamp = stamp
+            # center_cam_pub.publish(right_cam_info_msg)
+            center_img_pub.publish(br.cv2_to_imgmsg(frameCenter, encoding="bgr8"))
 
-            # pcl_arr = pcl_data.view(np.float32).reshape((pcl_frame.getHeight() * pcl_frame.getWidth(), 3))
-                
-
-            # pcl_data = pcl_data.view(np.float32).reshape(1, 3, pcl_frame.getHeight(), pcl_frame.getWidth())
-            # pcl_data = pcl_data.reshape(3, -1).T.astype(np.float64) / 1000.0
-            
-            # colors = msgs['rgb'].getCvFrame()[..., ::-1] # BGR to RGB
-            # print(f"{pcl_arr.shape}: {pcl_frame.getHeight()} * {pcl_frame.getWidth()} = {pcl_frame.getHeight() * pcl_frame.getWidth()}")
-
-            # pcl_actual = pcl_converter.visualize_pcl(pcl_arr)
+            center_img_compressed.header.stamp = stamp
+            center_img_compressed.data = np.array(cv2.imencode('.jpg', frameCenter)[1]).tobytes()
+            center_compressed_pub.publish(center_img_compressed)
 
 
-            # print(pcl_arr.reshape(-1, 3).shape)
-
+        if latestPacket["pcl"] is not None:
             # Use this as an example to visualise with Open3d instead:
             # https://github.com/luxonis/depthai-experiments/blob/d6a1dafb988e74e42f3250c71ca9905a6fe44b0e/gen2-pointcloud/device-pointcloud/main.py#L174C16-L174C16
             # viewer.log_points("Pointcloud", pcl_arr.reshape(-1, 3), colors=colors.reshape(-1, 3))
             # viewer.log_image("Color", colors)
 
-
-            # pcl_msg = orh.o3dpc_to_rospc(pcl_actual, 'right_camera', stamp)
-            # pcl2_pub.publish(pcl_msg)
-
             # if debugMode == True:
             #     pcl_converter.visualize_pcd()
+            
+            points = latestPacket["pcl"]["pcl"].getPoints().astype(np.float64)
+            
+            pcd.points = o3d.utility.Vector3dVector(points)
+            # if(frameCenter is not None):
+            #     colors = (frameCenter.reshape(-1, 3) / 255.0).astype(np.float64)
+            #     pcd.colors = o3d.utility.Vector3dVector(colors)
+
+            # print(f"Pointcloud has {len(pcd)} points")
+
+            pcl_msg = open3d_to_ros(pcd, frame_id="right_camera")
+            pcl2_pub.publish(pcl_msg)
+
             
         if latestPacket["left"] is not None:
             frameLeft = latestPacket["left"].getCvFrame()
@@ -473,19 +464,6 @@ with device:
             right_img_compressed.data = np.array(cv2.imencode('.jpg', frameRight)[1]).tobytes()
             right_compressed_pub.publish(right_img_compressed)
 
-        if latestPacket["center"] is not None:
-            frameCenter = latestPacket["center"].getCvFrame()
-            if debugMode == True:
-                cv2.imshow(centerWindowName, frameCenter)
-
-            center_img_msg.header.stamp = stamp
-            # center_cam_pub.publish(right_cam_info_msg)
-            center_img_pub.publish(br.cv2_to_imgmsg(frameCenter, encoding="bgr8"))
-
-            center_img_compressed.header.stamp = stamp
-            center_img_compressed.data = np.array(cv2.imencode('.jpg', frameCenter)[1]).tobytes()
-            center_compressed_pub.publish(center_img_compressed)
-
         if latestPacket["depth"] is not None:
             frameDepth = latestPacket["depth"].getCvFrame()
             if debugMode == True:
@@ -497,7 +475,7 @@ with device:
 
         if latestPacket["disp"] is not None:
             frameDisp = latestPacket["disp"].getFrame()
-            maxDisparity = stereo.initialConfig.getMaxDisparity()
+            maxDisparity = depth.initialConfig.getMaxDisparity()
             # Optional, extend range 0..95 -> 0..255, for a better visualisation
             if 1: frameDisp = (frameDisp * 255. / maxDisparity).astype(np.uint8)
             # Optional, apply false colorization
