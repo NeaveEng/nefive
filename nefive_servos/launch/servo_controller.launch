@@ -1,7 +1,7 @@
 <launch>
   <arg name="usb_port"                default="/dev/ttyUSB0"/>
   <arg name="dxl_baud_rate"           default="1000000"/>
-  <arg name="node_name"               default="nefive"/>
+  <arg name="node_name"               default="nefive_dynamixel_servo_controller"/>
 
   <arg name="use_moveit"              default="false"/>
   <arg name="use_joint_state"         default="true"/>
