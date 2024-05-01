@@ -1,5 +1,6 @@
 <launch>
-    <include file="$(find nefive_motion)/launch/mecanum_drive.launch"/>
+    <include file="$(find nefive_yukon)/launch/yukon_node.launch"/>
     <include file="$(find nefive_vision)/launch/camera.launch"/>
     <include file="$(find nefive_servos)/launch/barrel_control.launch"/>
+    <include file="$(find nefive_description)/launch/nefive_spawn.launch"/>
 </launch>

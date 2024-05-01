@@ -8,6 +8,7 @@ from sensor_msgs.msg import Joy
 from nefive_msgs.msg import Motors
 from nav_msgs.msg import Odometry
 from nefive_msgs.msg import Position
+import math 
 
 def handler(signum, frame):
     print("ctrl-c pressed, exiting")
@@ -43,6 +44,33 @@ def steering(vx, vy, wz):
     u = np.dot(kinematic_model, input_array)
     return u
 
+
+def diff_steering(y, x):
+    # convert to polar
+    r = math.hypot(x, y)
+    t = math.atan2(y, x)
+
+    # rotate by 45 degrees
+    t -= math.pi / 4
+
+    # back to cartesian
+    left = r * math.sin(t)
+    right = r * math.cos(t)
+
+    # rescale the new coords
+    left = left * math.sqrt(2)
+    right = right * math.sqrt(2)
+
+    # clamp to -1/+1
+    left = max(-1, min(left, 1))
+    right = max(-1, min(right, 1))
+
+    left = left * 20
+    right = right * 20
+
+    return right, left, right, left
+
+
 motor_msg = Motors()
 odom_msg = Odometry()
 
@@ -57,6 +85,8 @@ def setmotors(speeds):
     motor_msg.motor2 = speeds[1]
     motor_msg.motor3 = speeds[2]
     motor_msg.motor4 = speeds[3]
+
+    # print(motor_msg)
 
     motor_pub.publish(motor_msg)
 
@@ -100,6 +130,10 @@ def joy_callback(data):
         # Rotation needs to be radians per second, multiply z by 3.15 which is 180 degress per second
         rot = z * 3.15
         speeds = steering(x, y, rot)
+        
+        # front_left, front_right, back_left, back_right  = diff_steering(x, y)
+        # speeds = [front_left, front_right, back_left, back_right]
+        
         # print(front_left, front_right, back_left, back_right)
 
         # From profiling the motors, they have a max speed of ~50 rad/s
@@ -108,13 +142,12 @@ def joy_callback(data):
         base_motor_speed = 0.45
         turbo_multiplier = 1.25
 
-        # Buttons are on when down so this makes sense in the physical world
+        # # Buttons are on when down so this makes sense in the physical world
         if(data.buttons[4] == 1):
             # Low speed, halve values
             speeds = np.multiply(speeds, base_motor_speed)
         else:
             speeds = np.multiply(speeds, base_motor_speed * turbo_multiplier)
-
         setmotors(speeds)
 
     else:
@@ -127,15 +160,15 @@ if __name__ == '__main__':
         rospy.init_node('yukon_node', anonymous=True)
         signal.signal(signal.SIGINT, handler)
 
-        rospy.Subscriber('ne_five/joy', Joy, joy_callback)    
-        rospy.loginfo("Subscribed to ne_five/joy")
-        rospy.Subscriber('ne_five/yukon_odom', Position, odom_callback)
-        rospy.loginfo("Subscribed to ne_five/yukon_odom")    
+        rospy.Subscriber('joy', Joy, joy_callback)    
+        rospy.loginfo("Subscribed to joy")
+        rospy.Subscriber('yukon_odom', Position, odom_callback)
+        rospy.loginfo("Subscribed to yukon_odom")    
 
-        motor_pub = rospy.Publisher('ne_five/motors', Motors, queue_size=1)
-        rospy.loginfo("Publishing to ne_five/motors")
-        odom_pub = rospy.Publisher('ne_five/odom', Odometry, queue_size=1)
-        rospy.loginfo("Publishing to ne_five/odom")
+        motor_pub = rospy.Publisher('motors', Motors, queue_size=1)
+        rospy.loginfo("Publishing to motors")
+        odom_pub = rospy.Publisher('odom', Odometry, queue_size=1)
+        rospy.loginfo("Publishing to odom")
         
         rospy.spin()
             

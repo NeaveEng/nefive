@@ -20,6 +20,10 @@ from pathlib import Path
 import os
 import rospkg
 
+from nefive_msgs.msg import Motors
+
+motor_msg = Motors()
+
 
 # se3 = np.eye(4)
 # ros_transform = orh.se3_to_transform(se3) 
@@ -37,11 +41,70 @@ subpixel = False  # True  # Better accuracy for longer distance, fractional disp
 
 def signal_handler(signal, frame):
     print('CTRL-C caught, exiting.')
+
+    rostime = rospy.get_rostime()
+    motor_msg.seconds = rostime.secs
+    motor_msg.nsec = rostime.nsecs
+    motor_msg.rostime = True
+
+    motor_msg.motor1 = 0
+    motor_msg.motor2 = 0
+    motor_msg.motor3 = 0    
+    motor_msg.motor4 = 0
+    motor_pub.publish(motor_msg)
+    motor_pub.publish(motor_msg)
+    motor_pub.publish(motor_msg)
+    motor_pub.publish(motor_msg)
+    motor_pub.publish(motor_msg)
+    motor_pub.publish(motor_msg)
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 
+def getLine(imageFrame):
+    hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV) 
+  
+    # Set range for red color and  
+    # define mask 
+    sensitivity = 15
+    lower_white = np.array([0,0,255-sensitivity])
+    upper_white = np.array([255,sensitivity,255])
+    white_mask = cv2.inRange(hsvFrame, lower_white, upper_white) 
+  
+    # Morphological Transform, Dilation 
+    # for each color and bitwise_and operator 
+    # between imageFrame and mask determines 
+    # to detect only that particular color 
+    kernel = np.ones((5, 5), "uint8") 
+      
+    # For red color 
+    white_mask = cv2.dilate(white_mask, kernel) 
+    res_white = cv2.bitwise_and(imageFrame, imageFrame,  
+                              mask = white_mask) 
+      
+   
+    # Creating contour to track red color 
+    contours, hierarchy = cv2.findContours(white_mask, 
+                                           cv2.RETR_TREE, 
+                                           cv2.CHAIN_APPROX_SIMPLE) 
+    
+    x = None
+    y = None
 
+    for pic, contour in enumerate(contours): 
+        area = cv2.contourArea(contour) 
+        if(area > 300): 
+            x, y, w, h = cv2.boundingRect(contour) 
+            imageFrame = cv2.rectangle(imageFrame, (x, y),  
+                                       (x + w, y + h),  
+                                       (0, 0, 255), 2) 
+              
+            cv2.putText(imageFrame, "White Colour", (x, y), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, 
+                        (0, 0, 255))     
+            
+    return imageFrame, x, y
+  
 
 def open3d_to_ros(open3d_cloud, frame_id="base_link"):
     # Convert the cloud to a numpy array
@@ -58,7 +121,7 @@ def open3d_to_ros(open3d_cloud, frame_id="base_link"):
     return ros_cloud
 
 def create_xyz(width, height, camera_matrix):
-    xs = np.linspace(0, width - 1, width, dtype=float6)
+    xs = np.linspace(0, width - 1, width, dtype=float)
     ys = np.linspace(0, height - 1, height, dtype=float)
 
     # generate grid by stacking coordinates
@@ -204,15 +267,14 @@ def parse_calibration_yaml(params):
 
     return cam_info
 
-fps = 18
+fps = 30
 
 # Create pipeline
 print("Creating pipeline...")
 pipeline = dai.Pipeline()
 
 print("Creating device...")
-
-# device = dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH)
+device = dai.Device()
 queueNames = []
 
 # Define sources and outputs
@@ -332,6 +394,8 @@ right_compressed_pub = rospy.Publisher('camera/right/image/compressed', Compress
 center_compressed_pub = rospy.Publisher('camera/center/image/compressed', CompressedImage, queue_size=1)
 disparity_compressed_pub = rospy.Publisher('camera/disparity/image/compressed', CompressedImage, queue_size=1)
 
+motor_pub = rospy.Publisher('motors', Motors, queue_size=1)
+
 pcl2_pub = rospy.Publisher('camera/depth/points', PointCloud2, queue_size=1)
 
 # init messages
@@ -392,10 +456,8 @@ rospy.init_node('stereo_pub')
 br = CvBridge()
 
 # Connect to device and start pipeline
-
-with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
-# with device:
-    # device.startPipeline(pipeline)
+with device:
+    device.startPipeline(pipeline)
 
     print("Pipeline started.")
     frameRight = None
@@ -429,8 +491,6 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
     R_camera_to_world = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]).astype(float)
     pcd = o3d.geometry.PointCloud()
 
-    rate = rospy.Rate(fps)
-
     while not rospy.is_shutdown():
         latestPacket = {}
         latestPacket["left"] = None
@@ -455,6 +515,55 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
             frameCenter = latestPacket["center"].getCvFrame()
             if debugMode == True:
                 cv2.imshow(centerWindowName, frameCenter)
+
+            frameCenter, x, y = getLine(frameCenter)
+
+            if x is not None:
+
+                x_adjust = ((x / 419) * 2) - 1
+
+                left_speed = 7
+                right_speed = 7
+
+                if x_adjust < -0.2:
+                    left_speed = left_speed * (x_adjust * -1)
+                elif x_adjust > 0.2:
+                    right_speed = right_speed * x_adjust 
+
+                # left_adjust = 
+                # right_adjust = 
+                # print(x_adjust, left_speed, right_speed)
+                # left_speed = 1 
+                # right_speed = 1
+                
+
+
+                rostime = rospy.get_rostime()
+                motor_msg.seconds = rostime.secs
+                motor_msg.nsec = rostime.nsecs
+                motor_msg.rostime = True
+                motor_msg.motor1 = left_speed
+                motor_msg.motor2 = right_speed
+                motor_msg.motor3 = left_speed
+                motor_msg.motor4 = right_speed
+                
+                motor_pub.publish(motor_msg)
+                print(motor_msg)
+            else:
+
+                rostime = rospy.get_rostime()
+                motor_msg.seconds = rostime.secs
+                motor_msg.nsec = rostime.nsecs
+                motor_msg.rostime = True
+                motor_msg.motor1 = 0
+                motor_msg.motor2 = 0
+                motor_msg.motor3 = 0
+                motor_msg.motor4 = 0
+                
+                motor_pub.publish(motor_msg)
+                print(motor_msg)
+
+                
 
             center_img_msg.header.stamp = stamp
             # center_cam_pub.publish(right_cam_info_msg)
@@ -556,5 +665,3 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
 
         if cv2.waitKey(1) == ord('q'):
             break
-
-        # rate.sleep()

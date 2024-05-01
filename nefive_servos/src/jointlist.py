@@ -73,8 +73,8 @@ class ServoDetails:
                     108: [1040, 3685], 109: [-1254, 5105], 110: [-39, 4860], 111: [1565, 4156], 112: [-1172, 6545], 113: [999, 3103], 114: [1036, 3085], 115: [1425, 2494]}
 
     def __init__(self):
-        for id, _ in self.current_limits.items():
-            self.current_goals[id] = int(self.current_limits[id] * 0.85)
+        # for id, _ in self.current_limits.items():
+            # self.current_goals[id] = int(self.current_limits[id] * 0.85)
 
         # Set the and effectors to 50%
         self.current_goals[107] = int(self.current_limits[107] * 0.5)
