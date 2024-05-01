@@ -270,7 +270,7 @@ def joy_callback(data: Joy):
             if(leftControlHand == 0):
                 # control the arm, not the wrist
                 if leftStickButton == 0:
-                    angles[joint_dict["left_foreaft"]] += leftAxisY 
+                    angles[joint_dict["left_foreaft"]] -= leftAxisY 
                 else:
                     angles[joint_dict["left_elbow"]] -= leftAxisY
 
@@ -298,7 +298,7 @@ def joy_callback(data: Joy):
             if(rightControlHand == 0):                           
                 if(rightStickButton == 0):
                     # positions.servo1 -= leftAxisY 
-                    angles[joint_dict["right_foreaft"]] += rightAxisY 
+                    angles[joint_dict["right_foreaft"]] -= rightAxisY 
                 else:
                     angles[joint_dict["right_elbow"]] -= rightAxisY
 
