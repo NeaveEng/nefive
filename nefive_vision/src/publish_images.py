@@ -242,11 +242,11 @@ disparityOut = pipeline.create(dai.node.XLinkOut)
 disparityOut.setStreamName("disp")
 queueNames.append("disp")
 
-pointcloud: dai.node.PointCloud = pipeline.create(dai.node.PointCloud)
-pointcloudOut = pipeline.create(dai.node.XLinkOut)
-pointcloudOut.setStreamName("pcl")
-pointcloudOut.input.setBlocking(False)
-queueNames.append("pcl")
+# pointcloud: dai.node.PointCloud = pipeline.create(dai.node.PointCloud)
+# pointcloudOut = pipeline.create(dai.node.XLinkOut)
+# pointcloudOut.setStreamName("pcl")
+# pointcloudOut.input.setBlocking(False)
+# queueNames.append("pcl")
 
 sync = pipeline.create(dai.node.Sync)
 
@@ -287,8 +287,7 @@ centerCam.setFps(fps)
 
 print("Aligning to right camera...")
 # depth.setDepthAlign(dai.CameraBoardSocket.CAM_A)
-
-# depth.setDepthAlign(dai.StereoDepthConfig.AlgorithmControl.DepthAlign.RECTIFIED_RIGHT)
+depth.setDepthAlign(dai.StereoDepthConfig.AlgorithmControl.DepthAlign.RECTIFIED_RIGHT)
 
 configureDepthPostProcessing(depth)
 
@@ -306,14 +305,14 @@ depth.disparity.link(disparityOut.input)
 
 centerCam.isp.link(sync.inputs["center"])
 
-depth.depth.link(pointcloud.inputDepth)
-pointcloud.outputPointCloud.link(sync.inputs["pcl"])
-pointcloud.initialConfig.setSparse(False)
-sync.out.link(pointcloudOut.input)
+# depth.depth.link(pointcloud.inputDepth)
+# pointcloud.outputPointCloud.link(sync.inputs["pcl"])
+# pointcloud.initialConfig.setSparse(False)
+# sync.out.link(pointcloudOut.input)
 
-inConfig = pipeline.create(dai.node.XLinkIn)
-inConfig.setStreamName("config")
-inConfig.out.link(pointcloud.inputConfig)
+# inConfig = pipeline.create(dai.node.XLinkIn)
+# inConfig.setStreamName("config")
+# inConfig.out.link(pointcloud.inputConfig)
 
 left_img_pub = rospy.Publisher('camera/left/image', Image, queue_size=1)
 right_img_pub = rospy.Publisher('camera/right/image', Image, queue_size=1)
@@ -332,7 +331,7 @@ right_compressed_pub = rospy.Publisher('camera/right/image/compressed', Compress
 center_compressed_pub = rospy.Publisher('camera/center/image/compressed', CompressedImage, queue_size=1)
 disparity_compressed_pub = rospy.Publisher('camera/disparity/image/compressed', CompressedImage, queue_size=1)
 
-pcl2_pub = rospy.Publisher('camera/depth/points', PointCloud2, queue_size=1)
+# pcl2_pub = rospy.Publisher('camera/depth/points', PointCloud2, queue_size=1)
 
 # init messages
 left_img_msg = Image()
@@ -394,6 +393,7 @@ br = CvBridge()
 # Connect to device and start pipeline
 
 with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
+# with dai.Device(pipeline) as device:
 # with device:
     # device.startPipeline(pipeline)
 
@@ -402,7 +402,7 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
     frameDisp = None
     frameLeft = None
     frameDepth = None
-    framePcl = None
+    # framePcl = None
 
     resolution = (640,400)
 
@@ -427,7 +427,7 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
 
 
     R_camera_to_world = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]).astype(float)
-    pcd = o3d.geometry.PointCloud()
+    # pcd = o3d.geometry.PointCloud()
 
     rate = rospy.Rate(fps)
 
@@ -438,14 +438,14 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
         latestPacket["center"] = None
         latestPacket["depth"] = None
         latestPacket["disp"] = None
-        latestPacket["pcl"] = None
+        # latestPacket["pcl"] = None
         frameCenter = None
 
         stamp = rospy.Time.now()
         left_cam_info_msg.header.stamp = stamp
         right_cam_info_msg.header.stamp = stamp
 
-        queueEvents = device.getQueueEvents(("left", "right", "center", "depth", "disp", "pcl"))
+        queueEvents = device.getQueueEvents(("left", "right", "center", "depth", "disp"))
         for queueName in queueEvents:
             packets = device.getOutputQueue(queueName).tryGetAll()
             if len(packets) > 0:
@@ -465,26 +465,26 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
             center_compressed_pub.publish(center_img_compressed)
 
 
-        if latestPacket["pcl"] is not None:
-            # Use this as an example to visualise with Open3d instead:
-            # https://github.com/luxonis/depthai-experiments/blob/d6a1dafb988e74e42f3250c71ca9905a6fe44b0e/gen2-pointcloud/device-pointcloud/main.py#L174C16-L174C16
-            # viewer.log_points("Pointcloud", pcl_arr.reshape(-1, 3), colors=colors.reshape(-1, 3))
-            # viewer.log_image("Color", colors)
+        # if latestPacket["pcl"] is not None:
+        #     # Use this as an example to visualise with Open3d instead:
+        #     # https://github.com/luxonis/depthai-experiments/blob/d6a1dafb988e74e42f3250c71ca9905a6fe44b0e/gen2-pointcloud/device-pointcloud/main.py#L174C16-L174C16
+        #     # viewer.log_points("Pointcloud", pcl_arr.reshape(-1, 3), colors=colors.reshape(-1, 3))
+        #     # viewer.log_image("Color", colors)
 
-            # if debugMode == True:
-            #     pcl_converter.visualize_pcd()
+        #     # if debugMode == True:
+        #     #     pcl_converter.visualize_pcd()
             
-            points = latestPacket["pcl"]["pcl"].getPoints().astype(np.float64)
+        #     points = latestPacket["pcl"]["pcl"].getPoints().astype(np.float64)
             
-            pcd.points = o3d.utility.Vector3dVector(points)
-            if(frameCenter is not None):
-                colors = (frameCenter.reshape(-1, 3) / 255.0).astype(np.float64)
-                pcd.colors = o3d.utility.Vector3dVector(colors)
+        #     pcd.points = o3d.utility.Vector3dVector(points)
+        #     if(frameCenter is not None):
+        #         colors = (frameCenter.reshape(-1, 3) / 255.0).astype(np.float64)
+        #         pcd.colors = o3d.utility.Vector3dVector(colors)
 
-            # print(f"Pointcloud has {len(pcd)} points")
+        #     # print(f"Pointcloud has {len(pcd)} points")
 
-            pcl_msg = open3d_to_ros(pcd, frame_id="right_camera")
-            pcl2_pub.publish(pcl_msg)
+        #     pcl_msg = open3d_to_ros(pcd, frame_id="right_camera")
+        #     pcl2_pub.publish(pcl_msg)
 
             
         if latestPacket["left"] is not None:
@@ -557,4 +557,4 @@ with dai.Device(pipeline, maxUsbSpeed=dai.UsbSpeed.HIGH) as device:
         if cv2.waitKey(1) == ord('q'):
             break
 
-        # rate.sleep()
+        rate.sleep()
