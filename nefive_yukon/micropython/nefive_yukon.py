@@ -120,7 +120,7 @@ class NEFive:
                               [self.encoders[3].radians_per_second])
         latest_odom = self.kinematics.odometry(self.motor_speeds, duration)
         
-        self.odom += latest_odomf
+        self.odom += latest_odom
         self.total_duration += duration
         self.durations.add(duration)
 
@@ -207,7 +207,7 @@ class NEFive:
         self.position.angle_x = 0
         self.position.angle_y = 0
 
-        self.node.subscribe('ne_five/motors', Motors, self.motor_callback, buffer_size=256)
+        self.node.subscribe('motors', Motors, self.motor_callback, buffer_size=256)
 
         self.servo_pins = [SERVOS.FAST3, SERVOS.FAST4]
 
@@ -321,8 +321,8 @@ class NEFive:
         print(f"Status: {self.status.seconds}, {self.status.nsec}, {self.status.voltage_in}, {self.status.voltage_out}, {self.status.current}, {self.status.temperature}")
         # print(f"Odom: [{self.odom}], update_counts: {self.encoder_counts}")
         # print(f"Motors: {self.encoders[0].radians_per_second}, {self.encoders[1].radians_per_second}, {self.encoders[2].radians_per_second}, {self.encoders[3].radians_per_second}")
-        self.node.publish("/ne_five/status", self.status, buffer_size=256)
-        self.node.publish("/ne_five/yukon_odom", self.position, buffer_size=256)
+        self.node.publish("status", self.status, buffer_size=256)
+        self.node.publish("yukon_odom", self.position, buffer_size=256)
        
     kinematics = Kinematics() 
     # Create kinematics objects at start point
@@ -356,7 +356,7 @@ class NEFive:
             last_motor_update = ticks_ms()
 
             # Set the torso actuator to upright
-            self.servos.value(0, 0.75)
+            self.servos.value(0, 0.85)
 
             while True:
                 self.current_time = ticks_ms()                   # Record the start time of the program loop
@@ -377,7 +377,7 @@ class NEFive:
                     self.update_odom((self.current_time - last_motor_update) / 1000)
                     last_motor_update = self.current_time
 
-                self.servos.value(0, 0.75)
+                self.servos.value(0, 0.85)
 
                 if delta_time is not None:
                     self.update_encoders()        
