@@ -300,7 +300,7 @@ def joy_callback(data: Joy):
                     # positions.servo1 -= leftAxisY 
                     angles[joint_dict["right_foreaft"]] -= rightAxisY 
                 else:
-                    angles[joint_dict["right_elbow"]] -= rightAxisY
+                    angles[joint_dict["right_elbow"]] += rightAxisY
 
                 angles[joint_dict["right_flappy"]] -= rightAxisZ      
                 angles[joint_dict["right_upper_rotate"]] -= rightAxisX      
@@ -310,7 +310,7 @@ def joy_callback(data: Joy):
                 # pan
                 angles[joint_dict["right_wrist_pan"]] -= rightAxisX
                 # tilt
-                angles[joint_dict["right_wrist_tilt"]] += rightAxisY
+                angles[joint_dict["right_wrist_tilt"]] -= rightAxisY
 
                 if rightStickButton == 0:
                     # roll
