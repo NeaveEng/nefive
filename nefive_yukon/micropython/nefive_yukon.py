@@ -356,7 +356,7 @@ class NEFive:
             last_motor_update = ticks_ms()
 
             # Set the torso actuator to upright
-            self.servos.value(0, 0.85)
+            # self.servos.value(0, 0.85)
 
             while True:
                 self.current_time = ticks_ms()                   # Record the start time of the program loop
