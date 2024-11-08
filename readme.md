@@ -14,10 +14,25 @@ The simulation includes:
 - Two simulated cameras for stereo vision
 - Two IMU, one on the chassis and one on the base of the head
 
+Prerequisites
+--
+
+I use RoboStack to install and manage ROS packages so we need to install that. 
+
+1. `curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh bash Miniforge3-$(uname)-$(uname -m).sh`
+1. Follow the steps [here](https://robostack.github.io/GettingStarted.html) to install ROS Noetic
+    1. `mamba create -n ros_noetic python=3.11`
+    1. `mamba activate ros_noetic`
+    1. `conda config --env --add channels conda-forge`
+    1. `conda config --env --add channels robostack-staging`
+    1. `conda config --env --remove channels defaults`
+    1. `mamba install ros-noetic-desktop`
+
+
 Instructions
 --
 These instructions are for the simulation only and will be updated once the other packages are brought online. 
-1. Install [ROS Noetic](http://wiki.ros.org/noetic/Installation) Full Desktop
+1. Install [ROS Noetic](http://wiki.ros.org/noetic/Installation) Full Desktop, through that link or the method above
 2. [Create a ROS catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
 3. Clone this repo in to the `src` folder
 4. Run `catkin_make` in your [workspace root](http://wiki.ros.org/ROS/Tutorials/BuildingPackages)
