@@ -27,7 +27,7 @@ I use RoboStack to install and manage ROS packages so we need to install that.
     1. `conda config --env --add channels robostack-staging`
     1. `conda config --env --remove channels defaults`
     1. `mamba install ros-noetic-desktop`
-
+1. For the HifiBerry miniamp, add `dtoverlay=hifiberry-dac` to the config.txt file in the boot partition
 
 Instructions
 --
