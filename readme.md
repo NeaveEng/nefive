@@ -28,15 +28,19 @@ I use RoboStack to install and manage ROS packages so we need to install that.
     1. `conda config --env --remove channels defaults`
     1. `mamba install ros-noetic-desktop`
 1. For the HifiBerry miniamp, add `dtoverlay=hifiberry-dac` to the config.txt file in the boot partition
+1. For DepthAI follow [these instrustions](https://docs.luxonis.com/software/ros/depthai-ros/build/)
 
 Instructions
 --
 These instructions are for the simulation only and will be updated once the other packages are brought online. 
 1. Install [ROS Noetic](http://wiki.ros.org/noetic/Installation) Full Desktop, through that link or the method above
-2. [Create a ROS catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
-3. Clone this repo in to the `src` folder
-4. Run `catkin_make` in your [workspace root](http://wiki.ros.org/ROS/Tutorials/BuildingPackages)
-5. Run `roslaunch nefive_description start_nefive.launch`
+1. [Create a ROS catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
+1. Clone this repo in to the `src` folder
+1. Run `catkin_make` in your [workspace root](http://wiki.ros.org/ROS/Tutorials/BuildingPackages)
+1. `source catkin_make/devel/setup.bash`
+1. To install dependencies, run `rosdep install --from-paths ./src --ignore-packages-from-source --rosdistro noetic -y`. This should get packages from RoboStack where possible
+1. `git clone --branch noetic-devel https://github.com/ros-perception/vision_msgs.git`
+1. Run `roslaunch nefive_description start_nefive.launch`
 
 You should see a Gazebo window open with a simulated robot inside.  
 <img src="https://neave.engineering/wp-content/uploads/2021/09/gazebo-running.png" width="300">
