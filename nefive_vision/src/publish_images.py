@@ -12,7 +12,7 @@ import depthai as dai
 import rospy
 from sensor_msgs.msg import Image, CompressedImage, CameraInfo, PointCloud2
 import sensor_msgs.point_cloud2 as pc2
-import open3d as o3d
+# import open3d as o3d
 # from projector_device import PointCloudVisualizer
 # from projector_3d import PointCloudVisualizer3d
 # import open3d_ros_helper as orh
