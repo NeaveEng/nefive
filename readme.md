@@ -29,7 +29,11 @@ I use RoboStack to install and manage ROS packages so we need to install that.
     1. `mamba install ros-noetic-desktop`
 1. For the HifiBerry miniamp, add `dtoverlay=hifiberry-dac` to the config.txt file in the boot partition
 1. For DepthAI follow [these instrustions](https://docs.luxonis.com/software/ros/depthai-ros/build/)
+1. WiFi power-saving is enabled by default and can cause connection issues, disable by:
+    1. `sudo crontab -e`
+    1. `@reboot /usr/sbin/iw wlan0 set power_save off > /home/<user>/power_save_log.txt 2>&1` making sure `<user>` is replaced by your username
 
+    
 Instructions
 --
 These instructions are for the simulation only and will be updated once the other packages are brought online. 
