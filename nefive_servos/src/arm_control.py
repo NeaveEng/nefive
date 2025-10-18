@@ -118,7 +118,7 @@ def Lerp(start, end, ratio):
 
 def InitServos():
     servos.enableAllServos()
-    servos.lerpToAngles(angles, 2)
+    # servos.lerpToAngles(angles, 2)
 
 
 def DisableServos():
